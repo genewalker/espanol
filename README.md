@@ -1,6 +1,6 @@
 # Glosäventyret
 
-Etapp 3: föräldraadmin, glosimport, övervakad övning, repetition och statistik.
+Etapp 4: övervakad glosövning med repetition, statistik, XP, märken och veckans utmaning.
 Next.js App Router, TypeScript, Tailwind/shadcn och Convex Auth.
 
 ## Starta lokalt
@@ -78,7 +78,7 @@ Svar och feedback sparas på servern; oskickad text finns bara i fliken och
 försvinner vid omladdning. Vid nätproblem: invänta sparbekräftelsen.
 Arkivering/avpublicering stoppar ett aktivt pass; sparade resultat finns kvar.
 Ordändringar påverkar nya pass, medan pågående pass använder sin sparade version.
-XP, märken och bossutmaning kommer i Etapp 4.
+XP, märken och veckans utmaning finns nu; se testflödet nedan.
 
 ## Testa repetition och statistik
 
@@ -105,6 +105,28 @@ för nivå 0/1/2/3. Riktningarna delar progression. Tider visas i svensk tidszon
 Repetitionsnivåer börjar räknas med den här etappen. Äldre övningsresultat finns
 kvar, men har inte räknats om till nivåer i efterhand. Datamodellen uppdateras
 automatiskt av lokal Convex; ingen manuell datamigrering behövs.
+
+## Testa XP, märken och veckans utmaning
+
+1. Öppna `/app`, välj en publicerad lista och övningsläge.
+2. Rätt skrivsvar ger **10 XP**, rätt flerval **6 XP** och flashcard **Kunde 2 XP**.
+   Fel eller **Behöver öva** ger 0 XP. Omladdning ger inte extra poäng.
+3. Välj **Veckans utmaning – blandat pass** i Övningsläge. Passet använder upp till
+   tio slumpade glosor från hela listan, minst hälften skrivfrågor. Riktningen väljer du.
+4. Gör klart med minst **80 % rätt** för utmaningsmärket. En lista med färre än
+   tio unika ord ger ett kortare pass; färre än tre svarsalternativ ger skrivfrågor.
+5. Se XP och de tre märkena på övningsstarten, resultatet och **Dina framsteg**.
+   De andra märkena gäller första avslutade passet och tio korrekta skrivsvar totalt.
+
+Varje fråga kan ge XP en gång. Ett nytt pass innehåller nya frågetillfällen som
+kan ge XP igen. Märken ges en gång per profil, oavsett lista/vecka; ingen
+kalenderstyrd återställning, ranking eller streak används. Ett avbrutet pass
+behåller redan intjänad XP men ger inget avslutnings-/utmaningsmärke.
+Äldre svar räknas inte om till XP eller märken. Kunskapsnivåerna är separata.
+
+Automatiska mobiltester finns, men Etapp 4:s manuella test på en **fysisk telefon**
+återstår. Loopback-adressen på datorn fungerar inte direkt från telefonen;
+se iterationsrapporten innan en separat utvecklingskonfiguration för det sätts upp.
 
 ## Testa glosimporten
 
@@ -154,17 +176,18 @@ Privata sidor och auth-API öppnas inte i detta läge.
 - `src/lib/vocabulary/`: gemensam parser och validering för klient och server.
 - `src/components/practice/`: övningsstart, pass, feedback och resultat.
 - `src/components/progress/`: elevöversikt, repetitionsförslag och föräldrarapport.
-- `src/lib/practice/`: rena, deterministiska repetitionsregler.
+- `src/lib/practice/`: rena regler för repetition, XP och utmaningsgräns.
 - `src/proxy.ts`: Convex Auths Next.js-integration och route-omdirigering.
 - `convex/`: auth, schema, serverbehörighet, listor, import och atomära övningspass.
 - `scripts/`: lokalt miljöskydd och nyckelkonfiguration.
 - `tests/`: parser, auth-policy, Convex-behörighet/import och webbläsartester.
 
-Läs [Etapp 3-resultatet](docs/iterations/ITERATION_3_RESULT.md) för implementation,
+Läs [Etapp 4-resultatet](docs/iterations/ITERATION_4_RESULT.md) för implementation,
 tester och begränsningar. Tidigare rapporter bevarar auth-utredningen och
 historiken för [Etapp 0](docs/iterations/ITERATION_0_RESULT.md) och
 [Etapp 1](docs/iterations/ITERATION_1_RESULT.md) och
-[Etapp 2](docs/iterations/ITERATION_2_RESULT.md). Publik föräldraonboarding,
+[Etapp 2](docs/iterations/ITERATION_2_RESULT.md) och
+[Etapp 3](docs/iterations/ITERATION_3_RESULT.md). Publik föräldraonboarding,
 e-postverifiering/återställning och separat elevinloggning är inte aktiverade.
 
 CI och verifieringen använder npm med `package-lock.json`. Befintlig

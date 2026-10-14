@@ -3,10 +3,12 @@ import type { Doc, Id } from "./_generated/dataModel";
 import type { QueryCtx } from "./_generated/server";
 import { guardianMutation, guardianQuery } from "./lib/authorization";
 import { ownedSession, practiceMutation, practiceQuery, publishedList } from "./lib/practiceAccess";
-import { directionValidator, feedbackValidator, modeValidator, optionValidator, publishedListView, sessionSummary, submissionValidator } from "./lib/practiceModel";
-import { planQuestions, uniqueWords } from "./lib/practicePlan";
+import { directionValidator, feedbackValidator, modeValidator, sessionModeValidator, optionValidator, publishedListView, sessionSummary, submissionValidator } from "./lib/practiceModel";
+import { planChallenge, planQuestions, uniqueWords } from "./lib/practicePlan";
 import { selectionValidator } from "./lib/progressModel";
 import { listProgress, progressForWord, recordProgress } from "./lib/progress";
+import { answerXp, challengePassed } from "../src/lib/practice/rewards";
+import { awardBadge, recordRewards } from "./lib/rewards";
 import { isDifficult, selectPracticeWords } from "../src/lib/practice/repetition";
 import { cellError, cleanText, LIMITS } from "../src/lib/vocabulary/validation";
 import { gradeWritten, normalizeAnswer } from "../src/lib/vocabulary/normalize";
@@ -57,11 +59,12 @@ export const getList = practiceQuery({
 });
 
 export const startSession = practiceMutation({
-  args: { listId: v.id("vocabularyLists"), mode: modeValidator, direction: directionValidator, count: v.union(v.literal(5), v.literal(10)), requestId: v.string(), selection: v.optional(selectionValidator) },
+  args: { listId: v.id("vocabularyLists"), mode: sessionModeValidator, direction: directionValidator, count: v.union(v.literal(5), v.literal(10)), requestId: v.string(), selection: v.optional(selectionValidator) },
   returns: v.id("practiceSessions"),
   handler: async (ctx, args) => {
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(args.requestId)) throw new ConvexError("Ogiltigt pass-ID.");
     const selection = args.selection ?? "recommended";
+    if (args.mode === "mixed_boss" && (args.count !== 10 || selection !== "all")) throw new ConvexError("Utmaningen använder hela listan och högst tio frågor.");
     const previous = await ctx.db.query("practiceSessions").withIndex("by_profile_request", (q) => q.eq("profileId", ctx.profile._id).eq("requestId", args.requestId)).unique();
     if (previous) {
       if (previous.listId !== args.listId || previous.mode !== args.mode || previous.direction !== args.direction || previous.requestedCount !== args.count || (previous.selection ?? "recommended") !== selection) throw new ConvexError("Pass-ID används redan för andra val.");
@@ -84,7 +87,7 @@ export const startSession = practiceMutation({
     const selected = selection === "all" ? undefined : selectPracticeWords(candidates, args.count, selection, now).map((row) => row.word._id);
     if (selection === "difficult" && !selected?.length) throw new ConvexError("Inga svåra ord att repetera just nu. Välj Rekommenderat eller Hela listan.");
     // Distractors still come from the full list, even when reviewing a single word.
-    const plan = planQuestions(distinctWords, args.mode, args.direction, args.count, Math.random, selected);
+    const plan = args.mode === "mixed_boss" ? planChallenge(distinctWords, args.direction) : planQuestions(distinctWords, args.mode, args.direction, args.count, Math.random, selected);
     if (!plan.length) throw new ConvexError("Listan har inga aktiva glosor.");
     const sessionId = await ctx.db.insert("practiceSessions", {
       guardianId: ctx.user._id, profileId: ctx.profile._id, listId: list._id, listTitle: list.title,
@@ -101,7 +104,7 @@ export const getCurrentQuestion = practiceQuery({
   returns: v.union(
     v.object({ state: v.literal("finished"), session: sessionSummary }),
     v.object({ state: v.literal("unavailable"), session: sessionSummary }),
-    v.object({ state: v.literal("question"), session: sessionSummary, direction: directionValidator, requestedMode: modeValidator,
+    v.object({ state: v.literal("question"), session: sessionSummary, direction: directionValidator, requestedMode: sessionModeValidator,
       question: v.object({ index: v.number(), prompt: v.string(), mode: modeValidator, options: v.optional(v.array(optionValidator)), revealedAnswer: v.optional(v.string()) }),
       feedback: v.union(feedbackValidator, v.null()),
     }),
@@ -166,9 +169,12 @@ export const submitAnswer = practiceMutation({
       feedback = { kind: "self_assessed", correctAnswer: question.correctAnswer, submittedText: submission.rating === "known" ? "Kunde" : "Behöver öva", selfRating: submission.rating };
     }
     const now = Date.now();
+    feedback.xpAwarded = answerXp(question.mode, feedback.isCorrect === true || feedback.selfRating === "known");
+    await recordRewards(ctx, ctx.profile, session._id, feedback.xpAwarded, question.mode === "written" && feedback.isCorrect === true, now);
     await ctx.db.insert("practiceAnswers", { sessionId: session._id, profileId: ctx.profile._id, questionIndex: args.questionIndex, wordId: question.wordId, contentVersion: question.contentVersion, mode: question.mode, direction: session.direction, submission, feedback, createdAt: now });
     await recordProgress(ctx, ctx.profile._id, question, feedback.kind === "objective" ? feedback.isCorrect === true : feedback.selfRating === "known", now);
     await ctx.db.patch(session._id, {
+      xpEarned: (session.xpEarned ?? 0) + feedback.xpAwarded,
       answeredCount: session.answeredCount + 1,
       objectiveCount: session.objectiveCount + (feedback.kind === "objective" ? 1 : 0),
       correctCount: session.correctCount + (feedback.isCorrect ? 1 : 0),
@@ -189,6 +195,12 @@ export const advanceQuestion = practiceMutation({
     if (session.status !== "active" || session.currentIndex !== args.questionIndex) throw new ConvexError("Frågan är inte aktiv.");
     if (!await answerAt(ctx, session._id, args.questionIndex)) throw new ConvexError("Besvara frågan först.");
     const next = session.currentIndex + 1;
+    if (next === session.questionCount) {
+      await awardBadge(ctx, ctx.profile._id, session._id, "first_session", Date.now());
+      if (session.mode === "mixed_boss" && challengePassed(session.correctCount, session.questionCount)) {
+        await awardBadge(ctx, ctx.profile._id, session._id, "weekly_challenge", Date.now());
+      }
+    }
     await ctx.db.patch(session._id, { currentIndex: next, ...(next === session.questionCount ? { status: "completed" as const, completedAt: Date.now() } : {}) });
     return null;
   },
@@ -205,6 +217,7 @@ export const abandonSession = practiceMutation({
 
 export const getResults = practiceQuery({
   args: { sessionId: v.id("practiceSessions") }, returns: v.object({
+    xpEarned: v.number(), challengePassed: v.boolean(), listAvailable: v.boolean(),
     session: sessionSummary, direction: directionValidator, correctCount: v.number(), objectiveCount: v.number(),
     selfKnownCount: v.number(), selfAssessedCount: v.number(),
     answers: v.array(v.object({ index: v.number(), prompt: v.string(), mode: modeValidator, feedback: feedbackValidator })),
@@ -214,7 +227,9 @@ export const getResults = practiceQuery({
     if (session.status === "active") throw new ConvexError("Avsluta passet innan du öppnar resultatet.");
     const answers = await ctx.db.query("practiceAnswers").withIndex("by_session_question", (q) => q.eq("sessionId", session._id)).take(10);
     const views = await Promise.all(answers.map(async (answer) => ({ index: answer.questionIndex, prompt: (await questionAt(ctx, session._id, answer.questionIndex)).prompt, mode: answer.mode, feedback: answer.feedback })));
-    return { session: summary(session), direction: session.direction, correctCount: session.correctCount, objectiveCount: session.objectiveCount,
+    const list = await ctx.db.get(session.listId);
+    return { xpEarned: session.xpEarned ?? 0, challengePassed: session.mode === "mixed_boss" && session.status === "completed" && challengePassed(session.correctCount, session.questionCount), listAvailable: list?.status === "published" && list.guardianId === ctx.user._id,
+      session: summary(session), direction: session.direction, correctCount: session.correctCount, objectiveCount: session.objectiveCount,
       selfKnownCount: session.selfKnownCount, selfAssessedCount: session.selfAssessedCount, answers: views };
   },
 });

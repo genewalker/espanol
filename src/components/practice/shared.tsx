@@ -3,7 +3,7 @@ import { Authenticated, AuthLoading, Unauthenticated, useConvexConnectionState }
 import type { ReactNode } from "react";
 import { SessionBoundary, SignInAgain } from "@/components/session-boundary";
 
-export const modeLabels = { written: "Skriv svaret", multiple_choice: "Flerval", flashcard: "Flashcards" };
+export const modeLabels = { written: "Skriv svaret", multiple_choice: "Flerval", flashcard: "Flashcards", mixed_boss: "Veckans utmaning" };
 export function PracticeContent({ children }: { children: ReactNode }) {
   const connection = useConvexConnectionState();
   return <>

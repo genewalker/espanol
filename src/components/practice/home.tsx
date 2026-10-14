@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { errorMessage, Notice } from "@/components/admin/shared";
 import { modeLabels } from "./shared";
+import { RewardsPanel } from "./rewards";
 import { Recommendation } from "@/components/progress/overview";
 
 function ProfileForm({ nickname }: { nickname?: string }) {
@@ -36,7 +37,7 @@ export function PracticeHome() {
   if (!home) return <p role="status">Hämtar dina gloslistor…</p>;
   if (!home.nickname) return <Card><CardHeader><CardTitle>Skapa en övningsprofil</CardTitle></CardHeader><CardContent><ProfileForm /></CardContent></Card>;
   return <div className="space-y-6">
-    <h2 className="text-2xl font-bold break-words">Hej, {home.nickname}!</h2>
+    <div className="adventure-hero"><p className="text-sm font-bold uppercase tracking-widest">Ett ord i taget</p><h2 className="text-3xl font-bold break-words">Hej, {home.nickname}!</h2><p>Välj en liten upptäcktsfärd bland dina glosor. Du bestämmer takten.</p></div>
     {home.active && <Card><CardHeader><CardTitle>Fortsätt där du var</CardTitle></CardHeader><CardContent className="space-y-3">
       <p className="break-words">{home.active.listTitle} · {home.active.answeredCount} av {home.active.questionCount} besvarade</p>
       <Link className="primary-link" href={`/app/practice/${home.active.sessionId}`}>Fortsätt öva</Link>
@@ -55,6 +56,7 @@ export function PracticeHome() {
     {!!home.recent.length && <section className="space-y-3" aria-label="Senaste passen"><h2 className="text-xl font-bold">Senaste passen</h2><ul>{home.recent.map((session) => <li key={session.sessionId}>
       <Link className="inline-flex min-h-11 items-center underline break-words" href={`/app/results/${session.sessionId}`}>{session.listTitle} · {modeLabels[session.mode]} · {session.status === "abandoned" ? "Avslutat i förtid" : "Klart"}</Link>
     </li>)}</ul></section>}
+    <RewardsPanel />
     <details className="admin-panel"><summary className="min-h-11 cursor-pointer py-2 font-bold">Ändra smeknamn</summary><ProfileForm nickname={home.nickname} /></details>
   </div>;
 }

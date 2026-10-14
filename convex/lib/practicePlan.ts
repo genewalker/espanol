@@ -42,3 +42,12 @@ export function planQuestions(words: Doc<"words">[], mode: Mode, direction: Dire
     return { ...word, mode, questionIndex, options, correctOptionId: options.find((option) => option.text === word.correctAnswer)!.id };
   });
 }
+
+// Keep the same sampled words for both plans, then mix their question types.
+// Odd/short lists round the written quota up; missing distractors add more writing.
+export function planChallenge(words: Doc<"words">[], direction: Direction, random: () => number = Math.random) {
+  const written = planQuestions(words, "written", direction, 10, random);
+  const choices = planQuestions(words, "multiple_choice", direction, 10, random, written.map((question) => question.wordId));
+  const modes = shuffle(written.map((_, index) => index < Math.ceil(written.length / 2)), random);
+  return written.map((question, index) => modes[index] ? question : choices[index]);
+}

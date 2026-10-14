@@ -39,7 +39,7 @@
 @layer base {
   * { @apply border-border; }
   body { @apply bg-background text-foreground font-sans antialiased; }
-  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, summary:focus-visible, [tabindex="-1"]:focus-visible {
     outline: 3px solid #167153;
     outline-offset: 3px;
   }
@@ -50,6 +50,14 @@
 
 @layer components {
   .admin-main { @apply mx-auto max-w-3xl space-y-6 px-5 py-10; }
+  .adventure-hero { @apply space-y-3 rounded-2xl border p-5 sm:p-7; background: #e7f0e6; border-color: #8caa8a; }
+  .reward-panel { @apply rounded-2xl border p-4 sm:p-5; background: #fffdf5; border-color: #b2a477; }
+  .xp-total { @apply rounded-full px-4 py-2 text-lg font-bold; background: #f3dfa2; color: #514010; }
+  .badge-card { @apply flex min-w-0 flex-col items-start gap-2 rounded-xl border bg-white p-4; }
+  .badge-earned { background: #f9edc9; border-color: #9a8032; }
+  .badge-symbol { @apply flex h-11 w-11 items-center justify-center rounded-full border text-2xl; color: #514010; background: #fffdf5; }
+  .challenge-panel { @apply space-y-3 rounded-xl border p-4; background: #eeebfa; color: #3f3565; border-color: #a49abd; }
+  .answer-feedback { animation: feedback-in 180ms ease-out; }
   .admin-panel { @apply space-y-3 rounded-xl border bg-card p-4; }
   .field { @apply block w-full min-w-0 rounded-lg border border-input bg-white px-3 py-2 text-base; min-height: 44px; }
   select.field {
@@ -64,6 +72,8 @@
   .check-label { @apply flex min-h-11 cursor-pointer items-center gap-3; }
   .primary-link { @apply inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-5 py-3 font-semibold text-white; }
 }
+
+@keyframes feedback-in { from { opacity: .5; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }

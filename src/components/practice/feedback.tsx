@@ -6,10 +6,11 @@ export function AnswerFeedback({ feedback, answerLanguage }: { feedback: Feedbac
   const label = feedback.kind === "self_assessed"
     ? feedback.selfRating === "known" ? "Självskattning: Kunde" : "Självskattning: Behöver öva"
     : feedback.isCorrect ? "Rätt svar!" : "Inte riktigt ännu. Här kan du lära dig svaret.";
-  return <div className="space-y-2 break-words" role="status">
+  return <div className="answer-feedback space-y-2 break-words" role="status">
     <p className="text-xl font-bold"><span aria-hidden="true">{feedback.isCorrect || feedback.selfRating === "known" ? "✓ " : "↻ "}</span>{label}</p>
     {feedback.kind === "objective" && <p>Ditt svar: <span lang={answerLanguage}>{feedback.submittedText}</span></p>}
     <p>Facit: <strong lang={answerLanguage}>{feedback.correctAnswer}</strong></p>
+    {feedback.xpAwarded !== undefined && <p className="font-semibold">{feedback.xpAwarded > 0 ? `+${feedback.xpAwarded} XP` : "0 XP denna gång. Nästa fråga är en ny chans."}</p>}
     {feedback.hint && <p>{feedback.hint}</p>}
   </div>;
 }
