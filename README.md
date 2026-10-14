@@ -1,6 +1,7 @@
 # Glosäventyret
 
-Etapp 4: övervakad glosövning med repetition, statistik, XP, märken och veckans utmaning.
+Etapp 5: lokalt verifierad pilotförberedelse, dataexport/radering och release-/driftrutiner.
+Extern deploy och familjens acceptans återstår; användaren sköter Vercel-deployen.
 Next.js App Router, TypeScript, Tailwind/shadcn och Convex Auth.
 
 ## Starta lokalt
@@ -150,6 +151,34 @@ Granskningen ligger bara i flikens minne. Lämna inte sidan förrän sparandet
 bekräftats. Ett upprepat importförsök använder samma ID och skapar inte fler
 glosor. En helt ny granskning får ett nytt ID.
 
+## Familjepilot och Dina data
+
+Öppna **Dina data – export och radering** på föräldrasidan (`/admin/data`).
+Du kan hämta glosor och aktuell progression som JSON, en lista i taget.
+För att radera övningsprofilen och alla dess resultat krävs att du skriver
+**RADERA**. Föräldrakontot och gloslistorna behålls. En avbruten radering kan
+fortsättas från samma sida och övning är låst tills den är klar.
+
+Full lokal backup med auth-tabeller:
+
+```sh
+npm run backup:local
+```
+
+Backupen sparas privat i den ignorerade katalogen `backups/`. Behandla den som
+känslig data; filrättigheter är inte kryptering. JSON-exporten i appen är inte
+en full backup eller ett automatiskt återställningsformat.
+
+Följ [pilotens release- och driftguide](docs/operations/PILOT_RELEASE.md) för
+Vercel **Preview**, separat Convex **dev**, auth, backup/gallring, återställning,
+rollback och manuell acceptans. Backend använder en separat `.env.pilot.local`;
+ändra inte den lokala `.env.local`. `vercel.json` vägrar produktionsbyggen genom
+`npm run build:pilot`. Vercel ska inte ha någon Convex deploy-nyckel.
+
+`/api/health` visar frontendens livstecken; Convex `health:check` kontrolleras
+separat. Appens felhook loggar bara en fast händelsekod, utan elevdata.
+Plattformarnas egna loggar och åtkomst måste granskas i den riktiga pilotmiljön.
+
 ## Kontroller
 
 ```sh
@@ -182,12 +211,13 @@ Privata sidor och auth-API öppnas inte i detta läge.
 - `scripts/`: lokalt miljöskydd och nyckelkonfiguration.
 - `tests/`: parser, auth-policy, Convex-behörighet/import och webbläsartester.
 
-Läs [Etapp 4-resultatet](docs/iterations/ITERATION_4_RESULT.md) för implementation,
+Läs [Etapp 5-resultatet](docs/iterations/ITERATION_5_RESULT.md) för implementation,
 tester och begränsningar. Tidigare rapporter bevarar auth-utredningen och
 historiken för [Etapp 0](docs/iterations/ITERATION_0_RESULT.md) och
 [Etapp 1](docs/iterations/ITERATION_1_RESULT.md) och
 [Etapp 2](docs/iterations/ITERATION_2_RESULT.md) och
-[Etapp 3](docs/iterations/ITERATION_3_RESULT.md). Publik föräldraonboarding,
+[Etapp 3](docs/iterations/ITERATION_3_RESULT.md) och
+[Etapp 4](docs/iterations/ITERATION_4_RESULT.md). Publik föräldraonboarding,
 e-postverifiering/återställning och separat elevinloggning är inte aktiverade.
 
 CI och verifieringen använder npm med `package-lock.json`. Befintlig

@@ -9,6 +9,7 @@ async function practiceContext(ctx: QueryCtx) {
   const user = await requireGuardian(ctx);
   const profile = await ctx.db.query("learnerProfiles").withIndex("by_guardian", (q) => q.eq("guardianId", user._id)).unique();
   if (!profile) throw new ConvexError("Skapa en övningsprofil först.");
+  if (profile.deleting) throw new ConvexError("Profilen håller på att raderas. Gå till Dina data på föräldrasidan.");
   return { user, profile };
 }
 export const practiceQuery = customQuery(query, customCtx(practiceContext));

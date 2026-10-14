@@ -13,7 +13,7 @@ export default defineSchema({
     .index("by_profile_word", ["profileId", "wordId"])
     .index("by_profile_list", ["profileId", "listId"]),
   // A supervised practice profile is NOT an auth identity/account.
-  learnerProfiles: defineTable({ guardianId: v.id("users"), nickname: v.string(), totalXp: v.optional(v.number()), correctWrittenCount: v.optional(v.number()), createdAt: v.number() }).index("by_guardian", ["guardianId"]),
+  learnerProfiles: defineTable({ guardianId: v.id("users"), nickname: v.string(), deleting: v.optional(v.boolean()), totalXp: v.optional(v.number()), correctWrittenCount: v.optional(v.number()), createdAt: v.number() }).index("by_guardian", ["guardianId"]),
   practiceSessions: defineTable(sessionFields)
     .index("by_profile_status", ["profileId", "status"])
     .index("by_profile_created", ["profileId", "createdAt"])

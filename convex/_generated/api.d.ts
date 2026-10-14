@@ -9,6 +9,7 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as data from "../data.js";
 import type * as dev from "../dev.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
@@ -23,6 +24,7 @@ import type * as lib_progressModel from "../lib/progressModel.js";
 import type * as lib_rewards from "../lib/rewards.js";
 import type * as lib_vocabulary from "../lib/vocabulary.js";
 import type * as lists from "../lists.js";
+import type * as pilot from "../pilot.js";
 import type * as practice from "../practice.js";
 import type * as progress from "../progress.js";
 import type * as rewards from "../rewards.js";
@@ -37,6 +39,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  data: typeof data;
   dev: typeof dev;
   health: typeof health;
   http: typeof http;
@@ -51,6 +54,7 @@ declare const fullApi: ApiFromModules<{
   "lib/rewards": typeof lib_rewards;
   "lib/vocabulary": typeof lib_vocabulary;
   lists: typeof lists;
+  pilot: typeof pilot;
   practice: typeof practice;
   progress: typeof progress;
   rewards: typeof rewards;

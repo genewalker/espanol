@@ -34,7 +34,9 @@ function ProfileForm({ nickname }: { nickname?: string }) {
 
 export function PracticeHome() {
   const home = useQuery(api.practice.home);
-  if (!home) return <p role="status">Hämtar dina gloslistor…</p>;
+  const profile = useQuery(api.data.profile);
+  if (!home || profile === undefined) return <p role="status">Hämtar dina gloslistor…</p>;
+  if (profile?.deleting) return <div className="admin-panel"><h2 className="text-xl font-bold">Profilen håller på att raderas</h2><p>Föräldern behöver slutföra raderingen innan ni kan skapa en ny övningsprofil.</p><Link className="primary-link" href="/admin/data">Fortsätt på Dina data</Link></div>;
   if (!home.nickname) return <Card><CardHeader><CardTitle>Skapa en övningsprofil</CardTitle></CardHeader><CardContent><ProfileForm /></CardContent></Card>;
   return <div className="space-y-6">
     <div className="adventure-hero"><p className="text-sm font-bold uppercase tracking-widest">Ett ord i taget</p><h2 className="text-3xl font-bold break-words">Hej, {home.nickname}!</h2><p>Välj en liten upptäcktsfärd bland dina glosor. Du bestämmer takten.</p></div>

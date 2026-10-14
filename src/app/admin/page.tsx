@@ -13,6 +13,7 @@ export default async function AdminPage() {
     <Link className="primary-link" href="/admin/progress">Statistik och repetition</Link>
     <Link className="primary-link" href="/app">Öva tillsammans</Link>
     <p>Övning sker med en närvarande förälder och förälderns inloggning.</p>
+    <Link className="inline-flex min-h-11 items-center underline" href="/admin/data">Dina data – export och radering</Link>
     <SignOutButton />
   </main>;
 }

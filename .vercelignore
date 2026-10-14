@@ -1,0 +1,16 @@
+.git/
+.convex/
+.env
+.env.*
+!.env.example
+!.env.pilot.example
+backups/
+exports/
+test-results/
+playwright-report/
+playwright/.auth/
+node_modules/
+.next/
+*.log
+*.pem
+*.key

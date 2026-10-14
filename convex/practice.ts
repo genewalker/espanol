@@ -37,6 +37,7 @@ export const saveProfile = guardianMutation({
     const nickname = cleanText(args.nickname);
     if (!nickname || args.nickname.length > 32 || /[\p{C}\r\n]/u.test(nickname)) throw new ConvexError("Välj ett smeknamn med 1–32 tecken.");
     const existing = await ctx.db.query("learnerProfiles").withIndex("by_guardian", (q) => q.eq("guardianId", ctx.user._id)).unique();
+    if (existing?.deleting) throw new ConvexError("Slutför raderingen på Dina data innan du skapar en ny profil.");
     if (existing) { await ctx.db.patch(existing._id, { nickname }); return existing._id; }
     return ctx.db.insert("learnerProfiles", { guardianId: ctx.user._id, nickname, createdAt: Date.now() });
   },
