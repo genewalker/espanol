@@ -1,11 +1,12 @@
 import { readFileSync } from "node:fs";
 import { parseEnv } from "node:util";
+import { matchesConvexDeployment } from "../src/lib/convex-deployment.mjs";
 
 export function validatePilotEnvironment(env, { backend = false } = {}) {
   const target = env.PILOT_CONVEX_DEPLOYMENT;
   if (!target || !/^dev:[a-z0-9]+(?:-[a-z0-9]+)+$/.test(target)) throw new Error("Piloten kräver PILOT_CONVEX_DEPLOYMENT=dev:<namn>.");
   const name = target.slice(4);
-  if (env.NEXT_PUBLIC_CONVEX_URL !== `https://${name}.convex.cloud` || env.NEXT_PUBLIC_CONVEX_SITE_URL !== `https://${name}.convex.site`) throw new Error("Pilotens Convex-URL:er måste matcha vald dev-deployment.");
+  if (!matchesConvexDeployment(name, env.NEXT_PUBLIC_CONVEX_URL) || env.NEXT_PUBLIC_CONVEX_SITE_URL !== env.NEXT_PUBLIC_CONVEX_URL.replace(/\.cloud$/, ".site")) throw new Error("Pilotens Convex-URL:er måste matcha vald dev-deployment och ha samma region (om region anges).");
   let origin;
   try { origin = new URL(env.PILOT_APP_ORIGIN); } catch { throw new Error("Ange pilotens fasta HTTPS-origin i PILOT_APP_ORIGIN."); }
   if (origin.protocol !== "https:" || origin.origin !== env.PILOT_APP_ORIGIN || origin.username || origin.password) throw new Error("PILOT_APP_ORIGIN ska vara en HTTPS-origin utan sökväg.");

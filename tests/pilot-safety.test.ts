@@ -8,6 +8,24 @@ describe("pilot environment guards", () => {
   it("allows a matched preview frontend without any deploy credential", () => {
     expect(validatePilotEnvironment(env)).toEqual({ name: "pilot-test-123", origin: env.PILOT_APP_ORIGIN });
   });
+  it("allows the reported regional URL pair for both frontend and backend", () => {
+    const regional = { ...env, PILOT_CONVEX_DEPLOYMENT: "dev:harmless-finch-167", NEXT_PUBLIC_CONVEX_URL: "https://harmless-finch-167.eu-west-1.convex.cloud", NEXT_PUBLIC_CONVEX_SITE_URL: "https://harmless-finch-167.eu-west-1.convex.site" };
+    expect(validatePilotEnvironment(regional).name).toBe("harmless-finch-167");
+    expect(validatePilotEnvironment({ ...regional, CONVEX_DEPLOY_KEY: "dev:harmless-finch-167|test-key" }, { backend: true }).name).toBe("harmless-finch-167");
+  });
+  it.each([
+    ["https://pilot-test-123.eu-west-1.convex.cloud", "https://pilot-test-123.convex.site"],
+    ["https://pilot-test-123.eu-west-1.convex.cloud", "https://pilot-test-123.us-east-1.convex.site"],
+    ["https://other-name-123.eu-west-1.convex.cloud", "https://other-name-123.eu-west-1.convex.site"],
+    ["https://pilot-test-123.eu-west-1.convex.cloud.evil.test", "https://pilot-test-123.eu-west-1.convex.site.evil.test"],
+    ["https://user@pilot-test-123.eu-west-1.convex.cloud", "https://user@pilot-test-123.eu-west-1.convex.site"],
+    ["https://pilot-test-123.eu-west-1.convex.cloud/", "https://pilot-test-123.eu-west-1.convex.site/"],
+    ["https://pilot-test-123.eu-west-1.convex.cloud:444", "https://pilot-test-123.eu-west-1.convex.site:444"],
+    ["http://pilot-test-123.eu-west-1.convex.cloud", "http://pilot-test-123.eu-west-1.convex.site"],
+    [undefined, undefined],
+  ])("rejects mismatched or noncanonical regional URLs: %s, %s", (cloud, site) => {
+    expect(() => validatePilotEnvironment({ ...env, NEXT_PUBLIC_CONVEX_URL: cloud, NEXT_PUBLIC_CONVEX_SITE_URL: site })).toThrow();
+  });
   it.each([
     { VERCEL_ENV: "production" }, { VERCEL_ENV: "development" }, { VERCEL_TARGET_ENV: "production" },
     { PILOT_CONVEX_DEPLOYMENT: "prod:pilot-test-123" },

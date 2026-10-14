@@ -29,7 +29,9 @@ kontrollerat mot installerad Convex CLI 1.46.0; okända format nekas.
 ## 1. Förbered backend och auth
 
 1. Välj rätt team och projekt `espanol` i Convex dashboard. Välj/skapa en isolerad
-   **Development**-deployment. Notera dess namn och `.convex.cloud`/`.convex.site`.
+   **Development**-deployment. Kopiera dess fullständiga `.convex.cloud`/`.convex.site`-adresser,
+   inklusive eventuell region, exempelvis `https://<deploymentnamn>.eu-west-1.convex.cloud`.
+   `PILOT_CONVEX_DEPLOYMENT` är fortfarande `dev:<deploymentnamn>` utan region.
 2. Bestäm en fast Vercel-preview-origin för pilotgrenen, utan avslutande `/`.
    Familjen ska använda den adressen konsekvent. Kopiera `.env.pilot.example`
    till `.env.pilot.local` och fyll i värdena privat. `.env.local` ska behållas.
@@ -82,8 +84,8 @@ Lägg följande i **Preview**-miljön, med värden som matchar `.env.pilot.local
 | Variabel | Värde |
 |---|---|
 | `PILOT_CONVEX_DEPLOYMENT` | `dev:<deploymentnamn>` |
-| `NEXT_PUBLIC_CONVEX_URL` | `https://<deploymentnamn>.convex.cloud` |
-| `NEXT_PUBLIC_CONVEX_SITE_URL` | `https://<deploymentnamn>.convex.site` |
+| `NEXT_PUBLIC_CONVEX_URL` | Fullständig Convex cloud-URL från dashboard, inklusive eventuell region |
+| `NEXT_PUBLIC_CONVEX_SITE_URL` | Motsvarande Convex site-URL, med samma deploymentnamn och region |
 | `PILOT_APP_ORIGIN` | Den fasta preview-origin som används som SITE_URL |
 
 `VERCEL_ENV=preview` tillhandahålls av Vercel. Ingen `CONVEX_DEPLOY_KEY`,

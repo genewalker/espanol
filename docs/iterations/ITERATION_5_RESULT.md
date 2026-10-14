@@ -155,3 +155,30 @@ Convex dev, verifierar auth och extern logghantering, dokumenterar en separat
 återställningsövning och kör den riktiga veckolistan med minst tre övervakade
 pass. Komplettera rapporten med URL/commit, datum, enhet/webbläsare och resultat.
 Först därefter kan Etapp 5 markeras helt klar. Inga senare funktioner har påbörjats.
+
+## Uppföljning: regionala Convex-adresser
+
+Vercelbygget nekade ett giltigt URL-par med `.eu-west-1.convex.cloud` och
+`.eu-west-1.convex.site`. Orsaken var att pilotvalideringen antog att deploymentnamnet
+alltid följdes direkt av `.convex`. Samma antagande fanns i `pilot:createGuardian`.
+
+En gemensam kontroll i `src/lib/convex-deployment.mjs` accepterar nu både regionala
+och äldre adresser. Deploymentnamnet måste fortfarande matcha exakt, adressen
+måste vara en kanonisk HTTPS-origin under `.convex.cloud`, och frontendens
+site-adress måste ha samma namn och region. Dev-nyckelkontrollen och kravet på
+Vercel Preview är oförändrade. Mallen och driftguiden förklarar att URL:erna ska
+kopieras fullständigt från dashboard medan `dev:<namn>` saknar region.
+
+Verifiering efter rättningen:
+
+- `npm run check`: lint, båda typkontrollerna, **162/162 tester** och Next-build godkända.
+- Regressionstester inkluderar det rapporterade regionala URL-paret, äldre URL:er,
+  olika regioner, annat deploymentnamn, domänsuffix, credentials, port och HTTP.
+- Interna kontoskapandets deploymentkontroll testas genom Convex-test; själva
+  `createAccount` är mockad, så inga externa konton skapas av dessa tester.
+- Backend uppladdad till befintlig **lokal** instans med `convex run --push health:check`;
+  resultat `{"status":"ok"}`. Ett första `dev --once` stoppades eftersom den lokala
+  instansen redan kördes; den fortsatte köras utan omstart.
+- Ingen ny Playwright-körning för denna ändring av konfiguration och backendkontroll.
+- Inga molnmiljöer ändrade. Användaren behöver pusha rättningen, deploya backend
+  med `npm run pilot:backend -- deploy` och göra en ny Vercel Preview-deploy.
