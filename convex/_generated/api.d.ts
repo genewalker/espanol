@@ -18,9 +18,12 @@ import type * as lib_authorization from "../lib/authorization.js";
 import type * as lib_practiceAccess from "../lib/practiceAccess.js";
 import type * as lib_practiceModel from "../lib/practiceModel.js";
 import type * as lib_practicePlan from "../lib/practicePlan.js";
+import type * as lib_progress from "../lib/progress.js";
+import type * as lib_progressModel from "../lib/progressModel.js";
 import type * as lib_vocabulary from "../lib/vocabulary.js";
 import type * as lists from "../lists.js";
 import type * as practice from "../practice.js";
+import type * as progress from "../progress.js";
 import type * as users from "../users.js";
 import type * as words from "../words.js";
 
@@ -41,9 +44,12 @@ declare const fullApi: ApiFromModules<{
   "lib/practiceAccess": typeof lib_practiceAccess;
   "lib/practiceModel": typeof lib_practiceModel;
   "lib/practicePlan": typeof lib_practicePlan;
+  "lib/progress": typeof lib_progress;
+  "lib/progressModel": typeof lib_progressModel;
   "lib/vocabulary": typeof lib_vocabulary;
   lists: typeof lists;
   practice: typeof practice;
+  progress: typeof progress;
   users: typeof users;
   words: typeof words;
 }>;

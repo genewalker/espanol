@@ -4,7 +4,10 @@ import type { QueryCtx } from "./_generated/server";
 import { guardianMutation, guardianQuery } from "./lib/authorization";
 import { ownedSession, practiceMutation, practiceQuery, publishedList } from "./lib/practiceAccess";
 import { directionValidator, feedbackValidator, modeValidator, optionValidator, publishedListView, sessionSummary, submissionValidator } from "./lib/practiceModel";
-import { planQuestions } from "./lib/practicePlan";
+import { planQuestions, uniqueWords } from "./lib/practicePlan";
+import { selectionValidator } from "./lib/progressModel";
+import { listProgress, progressForWord, recordProgress } from "./lib/progress";
+import { isDifficult, selectPracticeWords } from "../src/lib/practice/repetition";
 import { cellError, cleanText, LIMITS } from "../src/lib/vocabulary/validation";
 import { gradeWritten, normalizeAnswer } from "../src/lib/vocabulary/normalize";
 
@@ -54,13 +57,14 @@ export const getList = practiceQuery({
 });
 
 export const startSession = practiceMutation({
-  args: { listId: v.id("vocabularyLists"), mode: modeValidator, direction: directionValidator, count: v.union(v.literal(5), v.literal(10)), requestId: v.string() },
+  args: { listId: v.id("vocabularyLists"), mode: modeValidator, direction: directionValidator, count: v.union(v.literal(5), v.literal(10)), requestId: v.string(), selection: v.optional(selectionValidator) },
   returns: v.id("practiceSessions"),
   handler: async (ctx, args) => {
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(args.requestId)) throw new ConvexError("Ogiltigt pass-ID.");
+    const selection = args.selection ?? "recommended";
     const previous = await ctx.db.query("practiceSessions").withIndex("by_profile_request", (q) => q.eq("profileId", ctx.profile._id).eq("requestId", args.requestId)).unique();
     if (previous) {
-      if (previous.listId !== args.listId || previous.mode !== args.mode || previous.direction !== args.direction || previous.requestedCount !== args.count) throw new ConvexError("Pass-ID används redan för andra val.");
+      if (previous.listId !== args.listId || previous.mode !== args.mode || previous.direction !== args.direction || previous.requestedCount !== args.count || (previous.selection ?? "recommended") !== selection) throw new ConvexError("Pass-ID används redan för andra val.");
       return previous._id;
     }
     const list = await publishedList(ctx, args.listId, ctx.user._id);
@@ -70,11 +74,21 @@ export const startSession = practiceMutation({
     const recent = await ctx.db.query("practiceSessions").withIndex("by_profile_created", (q) => q.eq("profileId", ctx.profile._id).gte("createdAt", now - 86_400_000)).take(50);
     if (recent.length >= 50) throw new ConvexError("Högst 50 nya pass under ett dygn. Försök igen senare.");
     const words = await ctx.db.query("words").withIndex("by_list_active", (q) => q.eq("listId", list._id).eq("isActive", true)).take(LIMITS.wordsPerList);
-    const plan = planQuestions(words, args.mode, args.direction, args.count);
+    const progress = await listProgress(ctx, ctx.profile._id, list._id);
+    // Intentionally retained duplicate rows each have their own progress. Rotate
+    // toward the least-practised row while still asking the expression only once.
+    const ranked = words.map((word) => ({ word, progress: progressForWord(word, progress.get(word._id), now) }));
+    ranked.sort((a, b) => (selection === "difficult" ? Number(isDifficult(a.progress)) - Number(isDifficult(b.progress)) : 0) || b.progress.attempts - a.progress.attempts);
+    const distinctWords = uniqueWords(ranked.map((row) => row.word));
+    const candidates = distinctWords.map((word) => ({ word, progress: progressForWord(word, progress.get(word._id), now) }));
+    const selected = selection === "all" ? undefined : selectPracticeWords(candidates, args.count, selection, now).map((row) => row.word._id);
+    if (selection === "difficult" && !selected?.length) throw new ConvexError("Inga svåra ord att repetera just nu. Välj Rekommenderat eller Hela listan.");
+    // Distractors still come from the full list, even when reviewing a single word.
+    const plan = planQuestions(distinctWords, args.mode, args.direction, args.count, Math.random, selected);
     if (!plan.length) throw new ConvexError("Listan har inga aktiva glosor.");
     const sessionId = await ctx.db.insert("practiceSessions", {
       guardianId: ctx.user._id, profileId: ctx.profile._id, listId: list._id, listTitle: list.title,
-      requestId: args.requestId, requestedCount: args.count, mode: args.mode, direction: args.direction, status: "active",
+      requestId: args.requestId, requestedCount: args.count, mode: args.mode, direction: args.direction, selection, status: "active",
       questionCount: plan.length, currentIndex: 0, answeredCount: 0, correctCount: 0, objectiveCount: 0, selfKnownCount: 0, selfAssessedCount: 0, createdAt: now,
     });
     for (const question of plan) await ctx.db.insert("practiceQuestions", { sessionId, ...question });
@@ -151,7 +165,9 @@ export const submitAnswer = practiceMutation({
       if (question.revealedAt === undefined) throw new ConvexError("Vänd kortet innan du skattar ditt svar.");
       feedback = { kind: "self_assessed", correctAnswer: question.correctAnswer, submittedText: submission.rating === "known" ? "Kunde" : "Behöver öva", selfRating: submission.rating };
     }
-    await ctx.db.insert("practiceAnswers", { sessionId: session._id, profileId: ctx.profile._id, questionIndex: args.questionIndex, wordId: question.wordId, contentVersion: question.contentVersion, mode: question.mode, direction: session.direction, submission, feedback, createdAt: Date.now() });
+    const now = Date.now();
+    await ctx.db.insert("practiceAnswers", { sessionId: session._id, profileId: ctx.profile._id, questionIndex: args.questionIndex, wordId: question.wordId, contentVersion: question.contentVersion, mode: question.mode, direction: session.direction, submission, feedback, createdAt: now });
+    await recordProgress(ctx, ctx.profile._id, question, feedback.kind === "objective" ? feedback.isCorrect === true : feedback.selfRating === "known", now);
     await ctx.db.patch(session._id, {
       answeredCount: session.answeredCount + 1,
       objectiveCount: session.objectiveCount + (feedback.kind === "objective" ? 1 : 0),

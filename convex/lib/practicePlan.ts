@@ -1,5 +1,5 @@
 import { normalizeAnswer } from "../../src/lib/vocabulary/normalize";
-import type { Doc } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
 
 export type Mode = "written" | "multiple_choice" | "flashcard";
 export type Direction = "sv_to_es" | "es_to_sv";
@@ -13,7 +13,11 @@ export function shuffle<T>(items: readonly T[], random: () => number = Math.rand
   return result;
 }
 
-export function planQuestions(words: Doc<"words">[], mode: Mode, direction: Direction, count: 5 | 10, random: () => number = Math.random) {
+export function uniqueWords(words: Doc<"words">[]) {
+  return [...new Map(words.map((word) => [JSON.stringify([normalizeAnswer(word.spanish), normalizeAnswer(word.swedish)]), word])).values()];
+}
+
+export function planQuestions(words: Doc<"words">[], mode: Mode, direction: Direction, count: 5 | 10, random: () => number = Math.random, selectedIds?: Id<"words">[]) {
   const values = words.map((word) => ({
     wordId: word._id, contentVersion: word.contentVersion,
     prompt: direction === "sv_to_es" ? word.swedish : word.spanish,
@@ -21,7 +25,9 @@ export function planQuestions(words: Doc<"words">[], mode: Mode, direction: Dire
     acceptedAnswers: direction === "sv_to_es" ? word.acceptedSpanish : word.acceptedSwedish,
   }));
   const unique = [...new Map(values.map((word) => [JSON.stringify([normalizeAnswer(word.prompt), normalizeAnswer(word.correctAnswer)]), word])).values()];
-  return shuffle(unique, random).slice(0, count).map((word, questionIndex) => {
+  const byId = new Map(unique.map((word) => [word.wordId, word]));
+  const selected = selectedIds ? selectedIds.flatMap((id) => byId.has(id) ? [byId.get(id)!] : []) : shuffle(unique, random);
+  return selected.slice(0, count).map((word, questionIndex) => {
     if (mode !== "multiple_choice") return { ...word, mode, questionIndex };
     const accepted = new Set([word.correctAnswer, ...word.acceptedAnswers].map(normalizeAnswer));
     const distractors = new Map<string, string>();

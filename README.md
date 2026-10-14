@@ -1,7 +1,7 @@
 # Glosäventyret
 
-Etapp 2: föräldraadmin, glosimport och övervakad övning med skrivfrågor, flerval
-och flashcards. Next.js App Router, TypeScript, Tailwind/shadcn och Convex Auth.
+Etapp 3: föräldraadmin, glosimport, övervakad övning, repetition och statistik.
+Next.js App Router, TypeScript, Tailwind/shadcn och Convex Auth.
 
 ## Starta lokalt
 
@@ -78,7 +78,33 @@ Svar och feedback sparas på servern; oskickad text finns bara i fliken och
 försvinner vid omladdning. Vid nätproblem: invänta sparbekräftelsen.
 Arkivering/avpublicering stoppar ett aktivt pass; sparade resultat finns kvar.
 Ordändringar påverkar nya pass, medan pågående pass använder sin sparade version.
-Repetition, långsiktig statistik, XP, märken och bossutmaning kommer senare.
+XP, märken och bossutmaning kommer i Etapp 4.
+
+## Testa repetition och statistik
+
+1. Starta ett pass med **Rekommenderat**: upp till 60 % repetition och 40 % nya
+   ord när det finns underlag. **Hela listan** ger ett slumpat urval.
+2. Besvara några frågor och öppna **Dina framsteg** (`/app/progress`). Där syns
+   **Behöver övas**, **På väg**, **Sitter bra** och nästa repetitionsdatum.
+3. Prova **Öva de svåra igen** från resultatet eller framstegsvyn. Urvalet gäller
+   listans aktuella svåra ord; nya ord räknas inte som svåra. Finns inga svåra
+   ord får du välja ett annat urval. Få svåra ord ger ett kortare pass.
+4. På föräldrasidan väljer du **Statistik och repetition** (`/admin/progress`).
+   Välj lista och se aktiva/besvarade ord, senaste avslutade pass, nivåer,
+   rättade svar och separat självskattning. Rapporten uppdateras när svar sparas.
+5. Ändra en glosa eller ett accepterat svar. Dess nivå börjar om direkt,
+   medan tidigare pass och svar finns kvar. Svar från ett redan pågående pass
+   med den gamla ordversionen påverkar inte den nya versionens nivå.
+
+Två korrekta skrivsvar höjer en nivå; enbart flerval kräver tre. Sex positiva
+flashcard-bedömningar kan ge nivå 1, men självskattning kan inte höja över nivå 1.
+Blandade lägen använder samma viktade regler. Fel sänker nivån ett steg och gör
+ordet redo att repeteras direkt. Efter lyckade svar är intervallen 1/2/4/7 dygn
+för nivå 0/1/2/3. Riktningarna delar progression. Tider visas i svensk tidszon.
+
+Repetitionsnivåer börjar räknas med den här etappen. Äldre övningsresultat finns
+kvar, men har inte räknats om till nivåer i efterhand. Datamodellen uppdateras
+automatiskt av lokal Convex; ingen manuell datamigrering behövs.
 
 ## Testa glosimporten
 
@@ -127,15 +153,18 @@ Privata sidor och auth-API öppnas inte i detta läge.
 - `src/components/admin/`: listöversikt, importgranskning och redigering.
 - `src/lib/vocabulary/`: gemensam parser och validering för klient och server.
 - `src/components/practice/`: övningsstart, pass, feedback och resultat.
+- `src/components/progress/`: elevöversikt, repetitionsförslag och föräldrarapport.
+- `src/lib/practice/`: rena, deterministiska repetitionsregler.
 - `src/proxy.ts`: Convex Auths Next.js-integration och route-omdirigering.
 - `convex/`: auth, schema, serverbehörighet, listor, import och atomära övningspass.
 - `scripts/`: lokalt miljöskydd och nyckelkonfiguration.
 - `tests/`: parser, auth-policy, Convex-behörighet/import och webbläsartester.
 
-Läs [Etapp 2-resultatet](docs/iterations/ITERATION_2_RESULT.md) för implementation,
+Läs [Etapp 3-resultatet](docs/iterations/ITERATION_3_RESULT.md) för implementation,
 tester och begränsningar. Tidigare rapporter bevarar auth-utredningen och
 historiken för [Etapp 0](docs/iterations/ITERATION_0_RESULT.md) och
-[Etapp 1](docs/iterations/ITERATION_1_RESULT.md). Publik föräldraonboarding,
+[Etapp 1](docs/iterations/ITERATION_1_RESULT.md) och
+[Etapp 2](docs/iterations/ITERATION_2_RESULT.md). Publik föräldraonboarding,
 e-postverifiering/återställning och separat elevinloggning är inte aktiverade.
 
 CI och verifieringen använder npm med `package-lock.json`. Befintlig

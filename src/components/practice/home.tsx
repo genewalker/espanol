@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { errorMessage, Notice } from "@/components/admin/shared";
 import { modeLabels } from "./shared";
+import { Recommendation } from "@/components/progress/overview";
 
 function ProfileForm({ nickname }: { nickname?: string }) {
   const save = useMutation(api.practice.saveProfile);
@@ -41,6 +42,7 @@ export function PracticeHome() {
       <Link className="primary-link" href={`/app/practice/${home.active.sessionId}`}>Fortsätt öva</Link>
       <p>Gör klart eller avsluta passet innan du startar ett nytt.</p>
     </CardContent></Card>}
+    {!home.active && home.lists.length > 0 && <Recommendation listId={home.lists.find((list) => list.listId === home.recent[0]?.listId)?.listId ?? home.lists[0].listId} />}
     <section className="space-y-3" aria-labelledby="practice-lists-heading">
       <h2 id="practice-lists-heading" className="text-xl font-bold">Välj gloslista</h2>
       {!home.lists.length ? <div className="admin-panel"><h3 className="font-bold">Inga glosor ännu</h3><p>Föräldern behöver publicera en gloslista först.</p><Link className="inline-flex min-h-11 items-center underline" href="/admin">Till föräldrasidan</Link></div> :

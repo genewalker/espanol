@@ -2,6 +2,7 @@ import { ConvexError, v } from "convex/values";
 import { guardianMutation, guardianQuery, ownedList } from "./lib/authorization";
 import { validatedWord, wordContentValidator, wordDocument } from "./lib/vocabulary";
 import { LIMITS, wordBytes } from "../src/lib/vocabulary/validation";
+import { initialProgress } from "../src/lib/practice/repetition";
 
 export const listForAdmin = guardianQuery({
   args: { listId: v.id("vocabularyLists") }, returns: v.array(wordDocument),
@@ -26,7 +27,13 @@ export const updateWord = guardianMutation({
     if (contentBytes > LIMITS.listBytes) throw new ConvexError("Listans text får vara högst 2 MB.");
     await ctx.db.patch(word._id, { ...content, contentVersion: word.contentVersion + 1, updatedAt: Date.now() });
     await ctx.db.patch(list._id, { contentBytes, updatedAt: Date.now() });
-    // Progress does not exist yet. Stage 3 must reset on contentVersion mismatch.
+    // MVP has one supervised profile per guardian. Reset only current progress;
+    // immutable practiceAnswers and practiceQuestions retain their old snapshots.
+    const profile = await ctx.db.query("learnerProfiles").withIndex("by_guardian", (q) => q.eq("guardianId", ctx.user._id)).unique();
+    if (profile) {
+      const progress = await ctx.db.query("wordProgress").withIndex("by_profile_word", (q) => q.eq("profileId", profile._id).eq("wordId", word._id)).unique();
+      if (progress) await ctx.db.patch(progress._id, { ...initialProgress(Date.now()), masteryLevel: 0, lastReviewedAt: undefined, lastSuccessful: undefined, contentVersion: word.contentVersion + 1 });
+    }
     return null;
   },
 });

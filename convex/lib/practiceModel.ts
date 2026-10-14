@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { selectionValidator } from "./progressModel";
 
 export const modeValidator = v.union(v.literal("written"), v.literal("multiple_choice"), v.literal("flashcard"));
 export const directionValidator = v.union(v.literal("sv_to_es"), v.literal("es_to_sv"));
@@ -15,6 +16,7 @@ export const feedbackValidator = v.object({
   isCorrect: v.optional(v.boolean()), selfRating: v.optional(v.union(v.literal("known"), v.literal("again"))), hint: v.optional(v.string()),
 });
 export const sessionFields = {
+  selection: v.optional(selectionValidator),
   profileId: v.id("learnerProfiles"), guardianId: v.id("users"), listId: v.id("vocabularyLists"), listTitle: v.string(),
   requestId: v.string(), requestedCount: v.union(v.literal(5), v.literal(10)), mode: modeValidator, direction: directionValidator,
   status: sessionStatus, questionCount: v.number(), currentIndex: v.number(), answeredCount: v.number(),

@@ -10,6 +10,7 @@ export default async function AdminPage() {
     <p>Samla veckans glosor, granska dem och publicera när listan är klar.</p>
     <Link className="primary-link" href="/admin/lists/new">Skapa gloslista</Link>
     <ListOverview />
+    <Link className="primary-link" href="/admin/progress">Statistik och repetition</Link>
     <Link className="primary-link" href="/app">Öva tillsammans</Link>
     <p>Övning sker med en närvarande förälder och förälderns inloggning.</p>
     <SignOutButton />
