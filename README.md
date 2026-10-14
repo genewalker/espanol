@@ -1,7 +1,7 @@
 # Glosäventyret
 
-Etapp 5: lokalt verifierad pilotförberedelse, dataexport/radering och release-/driftrutiner.
-Extern deploy och familjens acceptans återstår; användaren sköter Vercel-deployen.
+Etapp 5 med uppföljning: föräldrahanterad barninloggning, övning och framsteg.
+Barninloggningen är implementerad lokalt; användaren sköter Vercel-deployen.
 Next.js App Router, TypeScript, Tailwind/shadcn och Convex Auth.
 
 ## Starta lokalt
@@ -47,19 +47,37 @@ npx convex run dev:createGuardian '{"email":"foralder@example.test"}'
 Kommandot returnerar ett genererat lösenord en gång. Förvara det privat.
 Ingen e-post skickas. Kommandot är en **intern**, lokalt begränsad funktion;
 det kan inte anropas av webbläsarklienter. E-postadressen är inte verifierad
-av någon e-posttjänst. Självregistrering, barnkonton och lösenordsåterställning
-är avstängda. Använd inte detta bootstrap-flöde för publik drift.
+av någon e-posttjänst. Publik självregistrering och återställning av förälderns
+lösenord via e-post är avstängda. Använd inte detta bootstrap-flöde för publik drift.
 
 Logga in på `/sign-in`. `/admin` visar dina gloslistor.
-`/app` visar övningsvyn under förälderns session. Detta är PRD:ns reservmodell:
-föräldern ska vara närvarande. Visningsläget är inte en separat säkerhetsroll
-och ger fortfarande åtkomst till föräldrasidan.
+`/app` fungerar både för en separat inloggad elev och för övervakad övning med
+förälderns session. Vid föräldrainloggad övning ska föräldern vara närvarande,
+eftersom den sessionen fortfarande kan öppna föräldrasidan.
+
+## Barnets inloggning
+
+1. Logga in som förälder och välj **Barnets inloggning** (`/admin/learner`).
+2. Skapa en övningsprofil om den saknas. Befintlig profil, resultat och XP behålls.
+3. Välj ett opersonligt användarnamn (4–32 tecken, a–z, siffror och bindestreck,
+   börjar med en bokstav) och lösenord (12–128 tecken, gärna flera ord).
+   Bekräfta att du är vårdnadshavare och skapa kontot. Ingen e-post behövs.
+4. Barnet loggar in på `/sign-in/learner` och får öva på familjens publicerade
+   listor. Barnsessionen kan inte öppna admin eller hantera konton.
+5. Glömt lösenord: föräldern väljer **Byt lösenord** på samma adminsida.
+   Barnets gamla lösenord och samtliga gamla sessioner slutar fungera.
+6. **Dina data** raderar barnets konto, sessioner, profil och övningsdata.
+   Gloslistor och föräldrakonto behålls.
+
+Ett barnkonto per familj i MVP. Användarnamnet kan inte ändras i denna version.
+Förälderns session ersätts när barnet loggar in på samma enhet. Använd aldrig
+förälderns lösenord som barnets lösenord.
 
 ## Testa övningarna
 
 1. Publicera en gloslista på föräldrasidan. Din färglista går bra.
 2. Välj **Öva tillsammans** och skapa en övningsprofil med ett påhittat smeknamn.
-   Profilen har ingen e-post, inget lösenord och ingen egen inloggning.
+   För egen barninloggning: skapa också kontot enligt stegen ovan.
 3. Välj lista, **5 eller 10 frågor**, riktning och övningsläge.
 4. Skriv svaret och tryck Enter/**Rätta**, välj ett flervalsalternativ eller
    vänd ett flashcard och markera **Kunde**/**Behöver öva**.
@@ -218,7 +236,8 @@ historiken för [Etapp 0](docs/iterations/ITERATION_0_RESULT.md) och
 [Etapp 2](docs/iterations/ITERATION_2_RESULT.md) och
 [Etapp 3](docs/iterations/ITERATION_3_RESULT.md) och
 [Etapp 4](docs/iterations/ITERATION_4_RESULT.md). Publik föräldraonboarding,
-e-postverifiering/återställning och separat elevinloggning är inte aktiverade.
+e-postverifiering och e-postbaserad lösenordsåterställning är inte aktiverade.
+Separat elevinloggning beskrivs i [implementationsresultatet](docs/iterations/LEARNER_AUTH_RESULT.md).
 
 CI och verifieringen använder npm med `package-lock.json`. Befintlig
 `pnpm-lock.yaml` har också uppdaterats för de nya beroendena; blanda inte

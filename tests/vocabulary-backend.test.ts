@@ -15,6 +15,7 @@ async function fixture() {
     const guardianId = await ctx.db.insert("users", { role: "guardian" });
     const otherId = await ctx.db.insert("users", { role: "guardian" });
     const learnerId = await ctx.db.insert("users", { role: "learner", guardianId });
+    await ctx.db.insert("learnerProfiles", { guardianId, learnerUserId: learnerId, nickname: "Testare", createdAt: Date.now() });
     const sessions = await Promise.all([guardianId, otherId, learnerId].map((userId) => ctx.db.insert("authSessions", { userId, expirationTime: Date.now() + 60_000 })));
     return { guardianId, otherId, learnerId, sessions };
   });

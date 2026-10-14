@@ -1,5 +1,10 @@
 import { v } from "convex/values";
-import { guardianQuery } from "./lib/authorization";
+import { familyQuery, guardianQuery } from "./lib/authorization";
+
+export const viewer = familyQuery({
+  args: {}, returns: v.object({ role: v.union(v.literal("guardian"), v.literal("learner")), nickname: v.string() }),
+  handler: async (ctx) => ({ role: ctx.user.role!, nickname: ctx.user.role === "learner" ? ctx.profile!.nickname : ctx.user.nickname ?? "Förälder" }),
+});
 
 export const guardianViewer = guardianQuery({
   args: {},

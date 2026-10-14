@@ -1,5 +1,6 @@
 import { SignInForm } from "@/components/sign-in-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 
 export default function SignInPage() {
   return <main id="main" className="mx-auto max-w-md px-5 py-12">
@@ -8,6 +9,7 @@ export default function SignInPage() {
       <CardContent>
         {process.env.NEXT_PUBLIC_CONVEX_URL ? <SignInForm /> : <p>Inloggning är inte konfigurerad. Följ lokal installation i README.</p>}
         <p className="mt-6 text-sm text-muted-foreground">Endast för förberedda föräldrakonton. Barn ska inte registrera sig här.</p>
+        <Link className="inline-flex min-h-11 items-center underline" href="/sign-in/learner">Barnets inloggning</Link>
       </CardContent>
     </Card>
   </main>;

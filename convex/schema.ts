@@ -12,8 +12,10 @@ export default defineSchema({
   wordProgress: defineTable(progressFields)
     .index("by_profile_word", ["profileId", "wordId"])
     .index("by_profile_list", ["profileId", "listId"]),
-  // A supervised practice profile is NOT an auth identity/account.
-  learnerProfiles: defineTable({ guardianId: v.id("users"), nickname: v.string(), deleting: v.optional(v.boolean()), totalXp: v.optional(v.number()), correctWrittenCount: v.optional(v.number()), createdAt: v.number() }).index("by_guardian", ["guardianId"]),
+  // Existing supervised profiles keep their ID and progress when linked to an account.
+  learnerProfiles: defineTable({ guardianId: v.id("users"), nickname: v.string(), deleting: v.optional(v.boolean()), totalXp: v.optional(v.number()), correctWrittenCount: v.optional(v.number()), createdAt: v.number(),
+    learnerUserId: v.optional(v.id("users")), learnerUsername: v.optional(v.string()), authWindowAt: v.optional(v.number()), authChanges: v.optional(v.number()),
+  }).index("by_guardian", ["guardianId"]).index("by_learner", ["learnerUserId"]),
   practiceSessions: defineTable(sessionFields)
     .index("by_profile_status", ["profileId", "status"])
     .index("by_profile_created", ["profileId", "createdAt"])
@@ -34,6 +36,7 @@ export default defineSchema({
     role: v.optional(v.union(v.literal("guardian"), v.literal("learner"))),
     nickname: v.optional(v.string()),
     guardianId: v.optional(v.id("users")),
+    credentialVersion: v.optional(v.number()),
   })
     .index("email", ["email"])
     .index("phone", ["phone"])

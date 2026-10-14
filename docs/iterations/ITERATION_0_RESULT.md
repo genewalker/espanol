@@ -1,5 +1,11 @@
 # Etapp 0 – Foundation och autentisering
 
+Uppföljning efter familjepiloten: den tekniska möjligheten till användarnamnsbaserad
+elevinloggning har nu verifierats med Convex Auth i en isolerad testspik.
+Se [verifieringsrapporten](LEARNER_AUTH_VERIFICATION.md) och den efterföljande
+[lokala implementationen](LEARNER_AUTH_RESULT.md). Den historiska rapporten
+nedan beskriver Etapp 0 och dess dåvarande reservmodell.
+
 Datum: 2026-10-14. Status: **Etapp 0 genomförd och lokalt verifierad.**
 Etapp 1 är inte påbörjad. Ingen produktionsmiljö eller molndeployment har ändrats.
 

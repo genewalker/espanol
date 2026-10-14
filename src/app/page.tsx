@@ -12,7 +12,8 @@ export default function Home() {
       <CardContent className="space-y-5">
         <p>Skapa gloslistor, importera veckans ord och öva tillsammans med skrivfrågor, flerval och flashcards.</p>
         <Link className="primary-link" href="/sign-in">Logga in som förälder</Link>
-        <p className="text-sm text-muted-foreground">Barn behöver inte ange e-post eller skapa konto. Separat elevinloggning är inte aktiverad.</p>
+        <Link className="inline-flex min-h-11 items-center underline" href="/sign-in/learner">Logga in och öva</Link>
+        <p className="text-sm text-muted-foreground">Föräldern skapar barnets konto. Barn behöver ingen e-postadress.</p>
       </CardContent>
     </Card>
     <BackendStatus />

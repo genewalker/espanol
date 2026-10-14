@@ -2,15 +2,13 @@ import { customCtx, customMutation, customQuery } from "convex-helpers/server/cu
 import { ConvexError } from "convex/values";
 import { query, mutation, type QueryCtx } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
-import { requireGuardian } from "./authorization";
+import { familyContext } from "./authorization";
 
-// PRD §3 fallback: only the authenticated guardian may use this supervised flow.
 async function practiceContext(ctx: QueryCtx) {
-  const user = await requireGuardian(ctx);
-  const profile = await ctx.db.query("learnerProfiles").withIndex("by_guardian", (q) => q.eq("guardianId", user._id)).unique();
+  const { user, guardianId, profile } = await familyContext(ctx);
   if (!profile) throw new ConvexError("Skapa en övningsprofil först.");
   if (profile.deleting) throw new ConvexError("Profilen håller på att raderas. Gå till Dina data på föräldrasidan.");
-  return { user, profile };
+  return { user, guardianId, profile };
 }
 export const practiceQuery = customQuery(query, customCtx(practiceContext));
 export const practiceMutation = customMutation(mutation, customCtx(practiceContext));

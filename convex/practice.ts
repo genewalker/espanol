@@ -1,7 +1,7 @@
 import { ConvexError, v, type Infer } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { QueryCtx } from "./_generated/server";
-import { guardianMutation, guardianQuery } from "./lib/authorization";
+import { guardianMutation, familyQuery } from "./lib/authorization";
 import { ownedSession, practiceMutation, practiceQuery, publishedList } from "./lib/practiceAccess";
 import { directionValidator, feedbackValidator, modeValidator, sessionModeValidator, optionValidator, publishedListView, sessionSummary, submissionValidator } from "./lib/practiceModel";
 import { planChallenge, planQuestions, uniqueWords } from "./lib/practicePlan";
@@ -43,20 +43,20 @@ export const saveProfile = guardianMutation({
   },
 });
 
-export const home = guardianQuery({
-  args: {}, returns: v.object({ nickname: v.union(v.string(), v.null()), lists: v.array(publishedListView), active: v.union(sessionSummary, v.null()), recent: v.array(sessionSummary) }),
+export const home = familyQuery({
+  args: {}, returns: v.object({ role: v.union(v.literal("guardian"), v.literal("learner")), deleting: v.boolean(), nickname: v.union(v.string(), v.null()), lists: v.array(publishedListView), active: v.union(sessionSummary, v.null()), recent: v.array(sessionSummary) }),
   handler: async (ctx) => {
-    const profile = await ctx.db.query("learnerProfiles").withIndex("by_guardian", (q) => q.eq("guardianId", ctx.user._id)).unique();
-    const lists = await ctx.db.query("vocabularyLists").withIndex("by_guardian_status", (q) => q.eq("guardianId", ctx.user._id).eq("status", "published")).take(LIMITS.lists);
+    const profile = ctx.profile;
+    const lists = await ctx.db.query("vocabularyLists").withIndex("by_guardian_status", (q) => q.eq("guardianId", ctx.guardianId).eq("status", "published")).take(LIMITS.lists);
     const active = profile ? await ctx.db.query("practiceSessions").withIndex("by_profile_status", (q) => q.eq("profileId", profile._id).eq("status", "active")).unique() : null;
     const recent = profile ? await ctx.db.query("practiceSessions").withIndex("by_profile_created", (q) => q.eq("profileId", profile._id)).order("desc").take(5) : [];
-    return { nickname: profile?.nickname ?? null, lists: lists.map(listView), active: active ? summary(active) : null, recent: recent.filter((session) => session.status !== "active").map(summary) };
+    return { role: ctx.user.role!, deleting: profile?.deleting ?? false, nickname: profile?.nickname ?? null, lists: lists.map(listView), active: active ? summary(active) : null, recent: recent.filter((session) => session.status !== "active").map(summary) };
   },
 });
 
 export const getList = practiceQuery({
   args: { listId: v.id("vocabularyLists") }, returns: publishedListView,
-  handler: async (ctx, args) => listView(await publishedList(ctx, args.listId, ctx.user._id)),
+  handler: async (ctx, args) => listView(await publishedList(ctx, args.listId, ctx.guardianId)),
 });
 
 export const startSession = practiceMutation({
@@ -71,7 +71,7 @@ export const startSession = practiceMutation({
       if (previous.listId !== args.listId || previous.mode !== args.mode || previous.direction !== args.direction || previous.requestedCount !== args.count || (previous.selection ?? "recommended") !== selection) throw new ConvexError("Pass-ID används redan för andra val.");
       return previous._id;
     }
-    const list = await publishedList(ctx, args.listId, ctx.user._id);
+    const list = await publishedList(ctx, args.listId, ctx.guardianId);
     const active = await ctx.db.query("practiceSessions").withIndex("by_profile_status", (q) => q.eq("profileId", ctx.profile._id).eq("status", "active")).unique();
     if (active) throw new ConvexError("Ett pass pågår redan. Fortsätt eller avsluta det från övningsstarten.");
     const now = Date.now();
@@ -91,7 +91,7 @@ export const startSession = practiceMutation({
     const plan = args.mode === "mixed_boss" ? planChallenge(distinctWords, args.direction) : planQuestions(distinctWords, args.mode, args.direction, args.count, Math.random, selected);
     if (!plan.length) throw new ConvexError("Listan har inga aktiva glosor.");
     const sessionId = await ctx.db.insert("practiceSessions", {
-      guardianId: ctx.user._id, profileId: ctx.profile._id, listId: list._id, listTitle: list.title,
+      guardianId: ctx.guardianId, profileId: ctx.profile._id, listId: list._id, listTitle: list.title,
       requestId: args.requestId, requestedCount: args.count, mode: args.mode, direction: args.direction, selection, status: "active",
       questionCount: plan.length, currentIndex: 0, answeredCount: 0, correctCount: 0, objectiveCount: 0, selfKnownCount: 0, selfAssessedCount: 0, createdAt: now,
     });
@@ -111,10 +111,10 @@ export const getCurrentQuestion = practiceQuery({
     }),
   ),
   handler: async (ctx, args) => {
-    const session = await ownedSession(ctx, args.sessionId, ctx.profile._id, ctx.user._id);
+    const session = await ownedSession(ctx, args.sessionId, ctx.profile._id, ctx.guardianId);
     if (session.status !== "active") return { state: "finished" as const, session: summary(session) };
     const list = await ctx.db.get(session.listId);
-    if (!list || list.guardianId !== ctx.user._id || list.status !== "published") return { state: "unavailable" as const, session: summary(session) };
+    if (!list || list.guardianId !== ctx.guardianId || list.status !== "published") return { state: "unavailable" as const, session: summary(session) };
     const question = await questionAt(ctx, session._id, session.currentIndex);
     const answer = await answerAt(ctx, session._id, session.currentIndex);
     // Explicit allowlist: never spread a stored question, even after answering.
@@ -131,8 +131,8 @@ export const revealFlashcard = practiceMutation({
   args: { sessionId: v.id("practiceSessions"), questionIndex: v.number() }, returns: v.string(),
   handler: async (ctx, args) => {
     validIndex(args.questionIndex);
-    const session = await ownedSession(ctx, args.sessionId, ctx.profile._id, ctx.user._id);
-    await publishedList(ctx, session.listId, ctx.user._id);
+    const session = await ownedSession(ctx, args.sessionId, ctx.profile._id, ctx.guardianId);
+    await publishedList(ctx, session.listId, ctx.guardianId);
     if (session.status !== "active" || session.currentIndex !== args.questionIndex) throw new ConvexError("Frågan är inte aktiv.");
     const question = await questionAt(ctx, session._id, args.questionIndex);
     if (question.mode !== "flashcard") throw new ConvexError("Bara flashcards kan vändas.");
@@ -145,7 +145,7 @@ export const submitAnswer = practiceMutation({
   args: { sessionId: v.id("practiceSessions"), questionIndex: v.number(), submission: submissionValidator }, returns: feedbackValidator,
   handler: async (ctx, args) => {
     validIndex(args.questionIndex);
-    const session = await ownedSession(ctx, args.sessionId, ctx.profile._id, ctx.user._id);
+    const session = await ownedSession(ctx, args.sessionId, ctx.profile._id, ctx.guardianId);
     const submission = args.submission;
     if (submission.kind === "written" && (cellError(submission.text) || !normalizeAnswer(submission.text))) throw new ConvexError("Skriv ett svar med 1–5 000 tecken.");
     if (submission.kind === "multiple_choice" && submission.optionId.length > 32) throw new ConvexError("Ogiltigt svarsalternativ.");
@@ -154,7 +154,7 @@ export const submitAnswer = practiceMutation({
       if (submissionKey(previous.submission) !== submissionKey(submission)) throw new ConvexError("Frågan är redan besvarad. Det första svaret gäller.");
       return previous.feedback;
     }
-    await publishedList(ctx, session.listId, ctx.user._id);
+    await publishedList(ctx, session.listId, ctx.guardianId);
     if (session.status !== "active" || session.currentIndex !== args.questionIndex) throw new ConvexError("Frågan är inte aktiv.");
     const question = await questionAt(ctx, session._id, args.questionIndex);
     if (submission.kind !== question.mode) throw new ConvexError("Svaret har fel övningsläge.");
@@ -190,9 +190,9 @@ export const advanceQuestion = practiceMutation({
   args: { sessionId: v.id("practiceSessions"), questionIndex: v.number() }, returns: v.null(),
   handler: async (ctx, args) => {
     validIndex(args.questionIndex);
-    const session = await ownedSession(ctx, args.sessionId, ctx.profile._id, ctx.user._id);
+    const session = await ownedSession(ctx, args.sessionId, ctx.profile._id, ctx.guardianId);
     if (args.questionIndex < session.currentIndex) return null;
-    await publishedList(ctx, session.listId, ctx.user._id);
+    await publishedList(ctx, session.listId, ctx.guardianId);
     if (session.status !== "active" || session.currentIndex !== args.questionIndex) throw new ConvexError("Frågan är inte aktiv.");
     if (!await answerAt(ctx, session._id, args.questionIndex)) throw new ConvexError("Besvara frågan först.");
     const next = session.currentIndex + 1;
@@ -210,7 +210,7 @@ export const advanceQuestion = practiceMutation({
 export const abandonSession = practiceMutation({
   args: { sessionId: v.id("practiceSessions") }, returns: v.null(),
   handler: async (ctx, args) => {
-    const session = await ownedSession(ctx, args.sessionId, ctx.profile._id, ctx.user._id);
+    const session = await ownedSession(ctx, args.sessionId, ctx.profile._id, ctx.guardianId);
     if (session.status === "active") await ctx.db.patch(session._id, { status: "abandoned", completedAt: Date.now() });
     return null;
   },
@@ -224,12 +224,12 @@ export const getResults = practiceQuery({
     answers: v.array(v.object({ index: v.number(), prompt: v.string(), mode: modeValidator, feedback: feedbackValidator })),
   }),
   handler: async (ctx, args) => {
-    const session = await ownedSession(ctx, args.sessionId, ctx.profile._id, ctx.user._id);
+    const session = await ownedSession(ctx, args.sessionId, ctx.profile._id, ctx.guardianId);
     if (session.status === "active") throw new ConvexError("Avsluta passet innan du öppnar resultatet.");
     const answers = await ctx.db.query("practiceAnswers").withIndex("by_session_question", (q) => q.eq("sessionId", session._id)).take(10);
     const views = await Promise.all(answers.map(async (answer) => ({ index: answer.questionIndex, prompt: (await questionAt(ctx, session._id, answer.questionIndex)).prompt, mode: answer.mode, feedback: answer.feedback })));
     const list = await ctx.db.get(session.listId);
-    return { xpEarned: session.xpEarned ?? 0, challengePassed: session.mode === "mixed_boss" && session.status === "completed" && challengePassed(session.correctCount, session.questionCount), listAvailable: list?.status === "published" && list.guardianId === ctx.user._id,
+    return { xpEarned: session.xpEarned ?? 0, challengePassed: session.mode === "mixed_boss" && session.status === "completed" && challengePassed(session.correctCount, session.questionCount), listAvailable: list?.status === "published" && list.guardianId === ctx.guardianId,
       session: summary(session), direction: session.direction, correctCount: session.correctCount, objectiveCount: session.objectiveCount,
       selfKnownCount: session.selfKnownCount, selfAssessedCount: session.selfAssessedCount, answers: views };
   },

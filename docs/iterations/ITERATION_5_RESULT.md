@@ -182,3 +182,78 @@ Verifiering efter rättningen:
 - Ingen ny Playwright-körning för denna ändring av konfiguration och backendkontroll.
 - Inga molnmiljöer ändrade. Användaren behöver pusha rättningen, deploya backend
   med `npm run pilot:backend -- deploy` och göra en ny Vercel Preview-deploy.
+
+## Vercel-kontroll via CLI
+
+Användaren rapporterade lyckad `setup-auth` och backenddeploy till piloten.
+Efter erbjudandet att testa med installerad Vercel CLI verifierades läsåtkomst
+till `genewalkers-projects/espanol` med CLI 64.0.2. Ingen projektlänk, miljövariabel,
+deployment eller produktionsmiljö ändrades av agenten.
+
+- GitHub-grenen `develop` pekar på `643b076`, som innehåller regionrättningen.
+- Preview `espanol-97lq8igdb-genewalkers-projects.vercel.app` byggde denna commit
+  men stoppades av saknad/ogiltig `PILOT_APP_ORIGIN`. Variabellistan bekräftade
+  att endast de tre Convex-variablerna fanns för Preview; origin-variabeln saknades.
+- Den därefter startade Preview-deploymenten
+  `espanol-rg2wp958p-genewalkers-projects.vercel.app` var en redeploy av äldre
+  commit `337d1ca`, och stoppades av den gamla regionkontrollen.
+- Ingen av de två listade Preview-deploymenterna var Ready. Webbläsarflöde,
+  inloggning och frontendens anslutning till Convex kunde därför inte verifieras.
+
+Nästa åtgärd: ange `PILOT_APP_ORIGIN` för Preview, lämpligen grenens fasta alias
+`https://espanol-git-develop-genewalkers-projects.vercel.app`, använd samma origin
+i `.env.pilot.local` och kör `setup-auth` så att Convex `SITE_URL` matchar.
+Deploya därefter `643b076` eller senare från `develop`, inte den äldre deploymenten.
+
+### Korrigerad origin efter nytt byggfel
+
+Efter användarens nya byggfel kl. 16:02 bekräftade CLI att `PILOT_APP_ORIGIN`
+fortfarande saknades. Agenten lade till variabeln som Config **enbart för Preview**
+i `genewalkers-projects/espanol`, med värdet
+`https://espanol-git-develop-genewalkers-projects.vercel.app`.
+Samma origin sparades i den ignorerade `.env.pilot.local`, och `SITE_URL` sattes
+via den validerade dev-nyckeln i `harmless-finch-167`. Återläsning av `SITE_URL`
+bekräftade matchning; lokal validering av motsvarande Preview-konfiguration passerade.
+Befintliga auth-nycklar och produktionsinställningar ändrades inte. En ny
+Preview-deploy behövs för att ta in Vercel-variabeln; inget lyckat externt bygge
+eller inloggningsflöde har ännu verifierats.
+
+### Extern Preview verifierad 2026-10-14
+
+Efter användarens nya deploy bekräftade Vercel CLI **Ready**, gren `develop`,
+commit `643b076ee8b273ff773c6b2a27a0bebcff62c46d` för
+`https://espanol-kdg9w3du2-genewalkers-projects.vercel.app`.
+Tester kördes mot det fasta aliaset
+`https://espanol-git-develop-genewalkers-projects.vercel.app`.
+
+Playwright-kontroller passerade i både Chromium och emulerad iPhone 13/WebKit:
+
+- Startsidan svarar HTTP 200 och visar Glosäventyret.
+- Webbläsarens riktiga Convex-query/WebSocket visar **Anslutningen är klar.**
+- `/api/health` svarar HTTP 200 med `{"status":"ok"}`, `Cache-Control: no-store`
+  och `X-Frame-Options: DENY`.
+- Oinloggade anrop till `/admin`, `/app` och `/admin/data` omdirigeras till
+  `/sign-in`, där inloggningsknappen visas.
+- Noll okontrollerade JavaScript-fel i båda webbläsarna.
+
+Preview-skyddet behölls. Browserautomation använde en kortlivad utvecklings-OIDC-token
+enbart på anrop till pilotens origin. Ett separat `vercel curl`-anrop bekräftade
+också health; CLI skapade automatiskt en bypass-token för projektet. Inga tokenvärden
+skrevs ut eller sparades i rapporten. CLI:s flagghantering krävde explicit sökväg
+till Node för browserkörningen och att `--non-interactive` utelämnades från curl-anropet.
+
+Inga testkonton eller övningsdata skapades i molnet. Inloggning med pilotkontot,
+övning efter inloggning, verklig telefon och återställningsövningen återstår.
+Dessa kontroller innebär därför inte att hela Etapp 5 är godkänd.
+
+## Separat uppföljning: elevinloggning
+
+På användarens begäran har Convex Auths stöd för föräldrahanterade konton utan
+barnets e-post verifierats i en isolerad testspik. Se
+[LEARNER_AUTH_VERIFICATION.md](LEARNER_AUTH_VERIFICATION.md) för dokumentation,
+11 nya tester och kvarstående implementeringskrav. Pilotens authmodell är
+oförändrad; ingen ny authprovider eller elevfunktion har deployats.
+
+Efter användarens ”kör på” implementerades barninloggningen lokalt. Se
+[LEARNER_AUTH_RESULT.md](LEARNER_AUTH_RESULT.md) för det separata uppföljningsresultatet.
+Det innebär inte att pilotens återstående acceptans-/återställningspunkter är godkända.

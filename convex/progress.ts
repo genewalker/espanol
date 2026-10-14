@@ -24,7 +24,7 @@ async function report(ctx: QueryCtx, list: Doc<"vocabularyLists">, profile: Doc<
 
 export const myOverview = practiceQuery({
   args: { listId: v.id("vocabularyLists") }, returns: progressReport,
-  handler: async (ctx, args) => report(ctx, await publishedList(ctx, args.listId, ctx.user._id), ctx.profile, false),
+  handler: async (ctx, args) => report(ctx, await publishedList(ctx, args.listId, ctx.guardianId), ctx.profile, false),
 });
 
 export const guardianLearnerOverview = guardianQuery({

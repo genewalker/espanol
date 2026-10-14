@@ -40,7 +40,7 @@ export function DataManagement() {
     if (!profile.deleting) await begin({ profileId: profile.profileId, confirmation });
     // If this tab closes, the lock remains and the next visit offers Resume.
     while (!(await batch({ profileId: profile.profileId })).done) { /* bounded server batches */ }
-    setConfirmation(""); setSuccess("Övningsprofilen och dess resultat har raderats. Gloslistorna och föräldrakontot finns kvar.");
+    setConfirmation(""); setSuccess("Barnets konto, övningsprofil och resultat har raderats. Gloslistorna och föräldrakontot finns kvar.");
   }
   if (!lists || profile === undefined) return <p role="status">Hämtar dina data…</p>;
   const listId = lists.some((list) => list._id === selected) ? selected as Id<"vocabularyLists"> : lists[0]?._id;
@@ -59,7 +59,7 @@ export function DataManagement() {
     <section className="admin-panel" aria-labelledby="delete-heading">
       <h2 id="delete-heading" className="text-xl font-bold">Radera övningsprofil</h2>
       {!profile ? <p>Ingen övningsprofil finns att radera.</p> : <>
-        <p>Tar bort <strong className="break-words">{profile.nickname}</strong>, alla dess pass, sparade svar, ordprogression, XP och märken. Gloslistorna och föräldrakontot behålls. Raderingen kan inte ångras här.</p>
+        <p>Tar bort <strong className="break-words">{profile.nickname}</strong>, barnets eventuella inloggning, alla dess pass, sparade svar, ordprogression, XP och märken. Gloslistorna och föräldrakontot behålls. Raderingen kan inte ångras här.</p>
         <p>Exportera först om du vill behålla en kopia. Redan hämtade filer och äldre säkerhetskopior måste hanteras separat av den som sparat dem.</p>
         {profile.deleting ? <p role="status">Raderingen har påbörjats. Övning är låst tills den är klar. Fortsätt här om anslutningen bröts eller fliken stängdes.</p> :
           <label className="field-label">Skriv RADERA för att bekräfta<input className="field" autoComplete="off" value={confirmation} onChange={(e) => setConfirmation(e.target.value)} disabled={pending} /></label>}

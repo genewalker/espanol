@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
-export function SignOutButton() {
+export function SignOutButton({ learner = false }: { learner?: boolean }) {
   const { signOut } = useAuthActions();
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -15,7 +15,7 @@ export function SignOutButton() {
       setError("");
       try {
         await signOut();
-        router.replace("/sign-in");
+        router.replace(learner ? "/sign-in/learner" : "/sign-in");
         router.refresh();
       } catch {
         setError("Utloggningen misslyckades. Försök igen när anslutningen är tillbaka.");

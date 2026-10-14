@@ -8,6 +8,7 @@ export function SignInAgain() {
     <p role="alert">Din inloggning har gått ut. Logga in igen för att fortsätta.</p>
     {/* A full navigation discards subscriptions and cached errors for the old session. */}
     <a className="primary-link" href="/sign-in">Logga in igen</a>
+    <a className="inline-flex min-h-11 items-center underline" href="/sign-in/learner">Barnets inloggning</a>
   </div>;
 }
 

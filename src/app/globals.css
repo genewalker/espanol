@@ -73,7 +73,8 @@
   .primary-link { @apply inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-5 py-3 font-semibold text-white; }
 }
 
-@keyframes feedback-in { from { opacity: .5; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+/* Keep text at full contrast throughout the feedback animation. */
+@keyframes feedback-in { from { transform: translateY(4px); } to { transform: translateY(0); } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }

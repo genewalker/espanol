@@ -238,3 +238,30 @@ inbjudan. Detta lokala arbete gör inte någon juridisk bedömning av publik dri
 Anteckna datum, enhet/webbläsare, deploy-URL/commit och godkännande i iterationsrapporten.
 Varken automatiska trepass-tester eller tidigare mobilgodkännande ersätter
 acceptansen med den riktiga veckolistan i den nya pilotmiljön.
+
+
+## Uppföljningsrelease: separat barninloggning
+
+Se [LEARNER_AUTH_RESULT.md](../iterations/LEARNER_AUTH_RESULT.md). Förälderns
+befintliga e-postkonto och authnycklar behålls. Inga nya miljövariabler eller
+externa tjänster krävs. Uppföljningen har endast testats mot lokal Convex.
+
+1. Ta en privat backup av vald dev-deployment enligt rutinen ovan.
+2. Publicera backend med `npm run pilot:backend -- deploy`.
+3. Publicera motsvarande commit till Vercel Preview, samma fasta origin som tidigare.
+4. Föräldern skapar barnkontot på **Barnets inloggning** och verifierar inloggning,
+   ett pass, sparade framsteg och lösenordsbyte med familjen.
+
+Backend först: schemat utökas med valfria fält och ett index. Befintliga profiler
+behåller sina ID:n. Rulla inte tillbaka till det gamla schemat efter att barnkonton
+har skapats: de nya fälten finns då i databasen. Vid frontendproblem kan den äldre
+frontenden användas med den nya backenden och övervakad föräldrainloggning. För
+backendåterställning används en granskad kompatibel rättning eller den isolerade
+backup/återställningsrutinen ovan, med bedömning av nytillkommen data.
+
+Föräldern byter barnets lösenord i appen. Det återkallar alla barnets sessioner
+men lämnar förälderns sessioner orörda. Högst 10 kontoändringar per timme och
+20 lagrade barnsessioner (högst 100 refresh tokens per session) tillåts; ett lösenordsbyte tömmer barnets sessioner.
+Vid avbruten radering kan föräldern fortsätta på **Dina data**. Barnets inloggning
+och åtkomst spärras redan när raderingen påbörjas. Fullständiga backups kan
+fortfarande innehålla tidigare barnkonton och ska gallras enligt rutinen ovan.

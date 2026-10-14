@@ -1,4 +1,5 @@
 import { ConvexError, v } from "convex/values";
+import { deleteLearnerAuthBatch } from "./lib/deleteLearnerAuth";
 import type { Doc, Id } from "./_generated/dataModel";
 import { guardianMutation, guardianQuery, ownedList } from "./lib/authorization";
 import { listProgress, progressForWord } from "./lib/progress";
@@ -62,6 +63,7 @@ export const deleteProfileBatch = guardianMutation({
     if (!profile) return { done: true };
     if (profile.guardianId !== ctx.user._id) throw new ConvexError("NOT_FOUND");
     if (!profile.deleting) throw new ConvexError("Bekräfta raderingen först.");
+    if (!(await deleteLearnerAuthBatch(ctx, profile))) return { done: false };
     const session = await ctx.db.query("practiceSessions").withIndex("by_profile_created", (q) => q.eq("profileId", profile._id)).first();
     if (session) {
       const questions = await ctx.db.query("practiceQuestions").withIndex("by_session_question", (q) => q.eq("sessionId", session._id)).take(10);

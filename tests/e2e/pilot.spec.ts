@@ -70,7 +70,7 @@ test("familjepilot: tre pass, framsteg, JSON-export och fullständig profilrader
   await expect(button).toBeDisabled();
   await page.getByLabel("Skriv RADERA för att bekräfta").fill("RADERA");
   await button.click();
-  await expect(page.getByText("Övningsprofilen och dess resultat har raderats.", { exact: false })).toBeVisible();
+  await expect(page.getByText("Barnets konto, övningsprofil och resultat har raderats.", { exact: false })).toBeVisible();
   expect(await client.query(api.data.profile, {})).toBeNull();
   expect((await client.query(api.words.listForAdmin, { listId }))).toHaveLength(10);
   await page.goto("/app");

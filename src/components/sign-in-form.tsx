@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function SignInForm() {
+export function SignInForm({ learner = false }: { learner?: boolean }) {
   const { signIn, signOut } = useAuthActions();
   const router = useRouter();
   const busy = useRef(false);
@@ -24,8 +24,8 @@ export function SignInForm() {
       // Clear any previous session before replacing credentials. Otherwise
       // protected queries can reuse its revoked token during reauthentication.
       await signOut();
-      await signIn("password", data);
-      router.replace("/admin");
+      await signIn(learner ? "learner-password" : "password", data);
+      router.replace(learner ? "/app" : "/admin");
       router.refresh();
     } catch {
       setError("Det gick inte att logga in. Kontrollera uppgifterna och anslutningen. Vänta en stund om du har försökt flera gånger.");
@@ -35,7 +35,8 @@ export function SignInForm() {
     }
   }
   return <form onSubmit={submit} className="space-y-5" aria-busy={pending}>
-    <div className="space-y-2"><Label htmlFor="email">Din e-postadress</Label><Input id="email" name="email" type="email" autoComplete="username" maxLength={254} required /></div>
+    {learner ? <div className="space-y-2"><Label htmlFor="username">Användarnamn</Label><Input id="username" name="username" autoComplete="username" autoCapitalize="none" spellCheck={false} maxLength={32} required /></div> :
+      <div className="space-y-2"><Label htmlFor="email">Din e-postadress</Label><Input id="email" name="email" type="email" autoComplete="username" maxLength={254} required /></div>}
     <div className="space-y-2"><Label htmlFor="password">Lösenord</Label><Input id="password" name="password" type="password" autoComplete="current-password" maxLength={256} required /></div>
     <Button type="submit" disabled={pending} className="w-full">{pending ? "Loggar in…" : "Logga in"}</Button>
     <p role="alert" className="text-sm text-destructive">{error}</p>
