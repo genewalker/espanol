@@ -1,0 +1,57 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@theme inline {
+  --font-sans: Arial, Helvetica, sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--foreground);
+  --color-popover: var(--card);
+  --color-popover-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: #fff;
+  --color-secondary: #e5ede8;
+  --color-secondary-foreground: var(--foreground);
+  --color-muted: #edf0eb;
+  --color-muted-foreground: #4e5d55;
+  --color-accent: #e5ede8;
+  --color-accent-foreground: var(--foreground);
+  --color-destructive: #a31d32;
+  --color-border: #a4b1a7;
+  --color-input: #85958a;
+  --color-ring: #167153;
+  --radius-sm: .5rem;
+  --radius-md: .75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+}
+
+:root {
+  --background: #faf8f1;
+  --foreground: #203b31;
+  --card: #fff;
+  --primary: #116647;
+  --radius: 1rem;
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground font-sans antialiased; }
+  a:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 3px solid #167153;
+    outline-offset: 3px;
+  }
+  [data-slot="button"], [data-slot="input"] { min-height: 44px; }
+  [data-slot="button"] { min-width: 44px; }
+  [data-slot="input"] { font-size: 1rem; }
+}
+
+@layer components {
+  .primary-link { @apply inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-5 py-3 font-semibold text-white; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

@@ -1,0 +1,49 @@
+{
+  "name": "glosaventyret",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "dev:backend": "node scripts/local-backend.mjs",
+    "setup:auth": "node scripts/setup-local-auth.mjs",
+    "typecheck": "next typegen && tsc --noEmit && tsc --noEmit -p convex/tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build"
+  },
+  "dependencies": {
+    "@auth/core": "^0.41.3",
+    "@base-ui/react": "^1.9.0",
+    "@convex-dev/auth": "^0.0.96",
+    "class-variance-authority": "^0.7.1",
+    "cn": "^0.4.0",
+    "convex": "^1.46.0",
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "tw-animate-css": "^1.4.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@edge-runtime/vm": "^5.0.0",
+    "@playwright/test": "^1.64.0",
+    "@tailwindcss/turbopack": "^4",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "convex-test": "^0.0.61",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.0",
+    "shadcn": "^4.21.4",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^5.0.4"
+  },
+  "engines": {
+    "node": ">=22.12.0 <23"
+  }
+}

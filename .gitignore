@@ -1,0 +1,55 @@
+# Beroenden och lokal paketcachning
+node_modules/
+.pnpm-store/
+.npm/
+
+# Next.js och byggresultat
+/.next/
+/out/
+/build/
+/dist/
+next-env.d.ts
+*.tsbuildinfo
+
+# Lokal Convex-instans: databas, lagring och adminnycklar
+/.convex/
+# convex/_generated/ versionshanteras för typer och CI utan aktiv backend.
+
+# Miljövariabler och privata nycklar
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Tester, rapporter och sparade inloggningssessioner
+/coverage/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# Loggar
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Lokal Vercel-konfiguration
+/.vercel/
+
+# Operativsystem och lokala editorfiler
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+.idea/
+*.swp
+*.swo
+*~
+
+# Låsfiler, delade editorinställningar och .env.example versionshanteras.
