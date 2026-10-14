@@ -39,7 +39,7 @@
 @layer base {
   * { @apply border-border; }
   body { @apply bg-background text-foreground font-sans antialiased; }
-  a:focus-visible, button:focus-visible, input:focus-visible {
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
     outline: 3px solid #167153;
     outline-offset: 3px;
   }
@@ -49,6 +49,19 @@
 }
 
 @layer components {
+  .admin-main { @apply mx-auto max-w-3xl space-y-6 px-5 py-10; }
+  .admin-panel { @apply space-y-3 rounded-xl border bg-card p-4; }
+  .field { @apply block w-full min-w-0 rounded-lg border border-input bg-white px-3 py-2 text-base; min-height: 44px; }
+  select.field {
+    appearance: none;
+    padding-right: 2.25rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' fill='none' stroke='%23203b31' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-size: 1rem;
+    background-position: right .75rem center;
+    background-repeat: no-repeat;
+  }
+  .field-label { @apply block space-y-1 font-medium; }
+  .check-label { @apply flex min-h-11 cursor-pointer items-center gap-3; }
   .primary-link { @apply inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-5 py-3 font-semibold text-white; }
 }
 

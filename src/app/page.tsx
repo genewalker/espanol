@@ -10,7 +10,7 @@ export default function Home() {
     <Card className="mt-10">
       <CardHeader><CardTitle className="text-2xl">Välkommen, förälder</CardTitle></CardHeader>
       <CardContent className="space-y-5">
-        <p>Grunden är på plats. Gloslistor och övningar kommer i nästa etapper.</p>
+        <p>Skapa gloslistor, importera veckans ord och publicera när du är klar. Elevövningar kommer i nästa etapp.</p>
         <Link className="primary-link" href="/sign-in">Logga in som förälder</Link>
         <p className="text-sm text-muted-foreground">Barn behöver inte ange e-post eller skapa konto. Separat elevinloggning är inte aktiverad.</p>
       </CardContent>
