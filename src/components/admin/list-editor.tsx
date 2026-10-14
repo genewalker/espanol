@@ -103,7 +103,7 @@ export function ListEditor({ listId }: { listId: Id<"vocabularyLists"> }) {
     <h1 className="text-3xl font-bold break-words">{list.title}</h1>
     <div className="admin-panel">
       <p role="status" className="font-bold">{statusLabels[list.status]} · {list.activeWordCount} aktiva glosor</p>
-      <p>{list.status === "published" ? "Listan är publicerad för familjens elev. Elevvyn tillkommer i nästa etapp." : list.status === "archived" ? "Arkiverade listor är dolda för eleven. Återställ listan för att redigera glosor." : "Utkastet syns bara för dig. Publicera när glosorna är granskade."}</p>
+      <p>{list.status === "published" ? "Listan går att öva på via Öva tillsammans på föräldrasidan." : list.status === "archived" ? "Arkiverade listor är dolda i övningsvyn. Återställ listan för att redigera glosor." : "Utkastet syns bara för dig. Publicera när glosorna är granskade."}</p>
       <div className="flex flex-wrap gap-2">
         {list.status === "draft" && <Button disabled={pending || !list.activeWordCount} onClick={() => void status("published")}>Publicera listan</Button>}
         {list.status === "published" && <Button variant="outline" disabled={pending} onClick={() => void status("draft")}>Återgå till utkast</Button>}

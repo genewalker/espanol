@@ -15,8 +15,12 @@ import type * as http from "../http.js";
 import type * as imports from "../imports.js";
 import type * as lib_authPolicy from "../lib/authPolicy.js";
 import type * as lib_authorization from "../lib/authorization.js";
+import type * as lib_practiceAccess from "../lib/practiceAccess.js";
+import type * as lib_practiceModel from "../lib/practiceModel.js";
+import type * as lib_practicePlan from "../lib/practicePlan.js";
 import type * as lib_vocabulary from "../lib/vocabulary.js";
 import type * as lists from "../lists.js";
+import type * as practice from "../practice.js";
 import type * as users from "../users.js";
 import type * as words from "../words.js";
 
@@ -34,8 +38,12 @@ declare const fullApi: ApiFromModules<{
   imports: typeof imports;
   "lib/authPolicy": typeof lib_authPolicy;
   "lib/authorization": typeof lib_authorization;
+  "lib/practiceAccess": typeof lib_practiceAccess;
+  "lib/practiceModel": typeof lib_practiceModel;
+  "lib/practicePlan": typeof lib_practicePlan;
   "lib/vocabulary": typeof lib_vocabulary;
   lists: typeof lists;
+  practice: typeof practice;
   users: typeof users;
   words: typeof words;
 }>;

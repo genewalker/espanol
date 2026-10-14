@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export function SignInForm() {
-  const { signIn } = useAuthActions();
+  const { signIn, signOut } = useAuthActions();
   const router = useRouter();
   const busy = useRef(false);
   const [pending, setPending] = useState(false);
@@ -21,6 +21,9 @@ export function SignInForm() {
     const data = new FormData(event.currentTarget);
     data.set("flow", "signIn");
     try {
+      // Clear any previous session before replacing credentials. Otherwise
+      // protected queries can reuse its revoked token during reauthentication.
+      await signOut();
       await signIn("password", data);
       router.replace("/admin");
       router.refresh();

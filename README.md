@@ -1,7 +1,7 @@
 # Glosäventyret
 
-Etapp 1: föräldraadmin, gloslistor och granskad text-/CSV-import. Next.js App
-Router, TypeScript, Tailwind/shadcn och Convex Auth. Elevövningar är nästa etapp.
+Etapp 2: föräldraadmin, glosimport och övervakad övning med skrivfrågor, flerval
+och flashcards. Next.js App Router, TypeScript, Tailwind/shadcn och Convex Auth.
 
 ## Starta lokalt
 
@@ -50,8 +50,35 @@ av någon e-posttjänst. Självregistrering, barnkonton och lösenordsåterstäl
 är avstängda. Använd inte detta bootstrap-flöde för publik drift.
 
 Logga in på `/sign-in`. `/admin` visar dina gloslistor.
-`/app` leder tills vidare till samma skyddade sida; ingen elevvy eller rollväxling
-har byggts. Föräldrasessionen får endast användas under uppsikt på delad enhet.
+`/app` visar övningsvyn under förälderns session. Detta är PRD:ns reservmodell:
+föräldern ska vara närvarande. Visningsläget är inte en separat säkerhetsroll
+och ger fortfarande åtkomst till föräldrasidan.
+
+## Testa övningarna
+
+1. Publicera en gloslista på föräldrasidan. Din färglista går bra.
+2. Välj **Öva tillsammans** och skapa en övningsprofil med ett påhittat smeknamn.
+   Profilen har ingen e-post, inget lösenord och ingen egen inloggning.
+3. Välj lista, **5 eller 10 frågor**, riktning och övningsläge.
+4. Skriv svaret och tryck Enter/**Rätta**, välj ett flervalsalternativ eller
+   vänd ett flashcard och markera **Kunde**/**Behöver öva**.
+5. Ladda om efter ett svar. Samma feedback finns kvar; välj **Nästa fråga**.
+   Du kan också återvända till övningsstarten och välja **Fortsätt öva**.
+6. Välj **Visa resultat** efter sista frågan. Självskattning visas separat
+   från serverrättade svar. **Avsluta i förtid** bevarar redan sparade svar.
+
+Accenter och ñ är betydelsebärande: `si` är inte `sí`. Artiklar krävs när de
+ingår i glosan, om inte ett alternativt svar lagts till av föräldern. Rättningen
+ignorerar yttre whitespace, upprepade mellanslag, skiftläge och avslutande
+`.`, `!`, `?`, `…`. Flerval faller tillbaka till skrivfråga när det finns färre
+än tre unika alternativ. Färre unika ord ger ett kortare pass.
+
+Ett pass åt gången och högst 50 nya pass under ett rullande dygn per profil.
+Svar och feedback sparas på servern; oskickad text finns bara i fliken och
+försvinner vid omladdning. Vid nätproblem: invänta sparbekräftelsen.
+Arkivering/avpublicering stoppar ett aktivt pass; sparade resultat finns kvar.
+Ordändringar påverkar nya pass, medan pågående pass använder sin sparade version.
+Repetition, långsiktig statistik, XP, märken och bossutmaning kommer senare.
 
 ## Testa glosimporten
 
@@ -99,14 +126,16 @@ Privata sidor och auth-API öppnas inte i detta läge.
 - `src/components/`: shadcn-komponenter, auth-formulär och providers.
 - `src/components/admin/`: listöversikt, importgranskning och redigering.
 - `src/lib/vocabulary/`: gemensam parser och validering för klient och server.
+- `src/components/practice/`: övningsstart, pass, feedback och resultat.
 - `src/proxy.ts`: Convex Auths Next.js-integration och route-omdirigering.
-- `convex/`: auth, schema, serverbehörighet, listor, ord och importtransaktioner.
+- `convex/`: auth, schema, serverbehörighet, listor, import och atomära övningspass.
 - `scripts/`: lokalt miljöskydd och nyckelkonfiguration.
 - `tests/`: parser, auth-policy, Convex-behörighet/import och webbläsartester.
 
-Läs [Etapp 1-resultatet](docs/iterations/ITERATION_1_RESULT.md) för implementation,
-tester och begränsningar. [Etapp 0-resultatet](docs/iterations/ITERATION_0_RESULT.md)
-bevarar auth-utredningen och historiken. Publik föräldraonboarding,
+Läs [Etapp 2-resultatet](docs/iterations/ITERATION_2_RESULT.md) för implementation,
+tester och begränsningar. Tidigare rapporter bevarar auth-utredningen och
+historiken för [Etapp 0](docs/iterations/ITERATION_0_RESULT.md) och
+[Etapp 1](docs/iterations/ITERATION_1_RESULT.md). Publik föräldraonboarding,
 e-postverifiering/återställning och separat elevinloggning är inte aktiverade.
 
 CI och verifieringen använder npm med `package-lock.json`. Befintlig

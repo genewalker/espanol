@@ -2,9 +2,18 @@ import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 import { listFields, wordFields } from "./lib/vocabulary";
+import { answerFields, questionFields, sessionFields } from "./lib/practiceModel";
 
 export default defineSchema({
   ...authTables,
+  // A supervised practice profile is NOT an auth identity/account.
+  learnerProfiles: defineTable({ guardianId: v.id("users"), nickname: v.string(), createdAt: v.number() }).index("by_guardian", ["guardianId"]),
+  practiceSessions: defineTable(sessionFields)
+    .index("by_profile_status", ["profileId", "status"])
+    .index("by_profile_created", ["profileId", "createdAt"])
+    .index("by_profile_request", ["profileId", "requestId"]),
+  practiceQuestions: defineTable(questionFields).index("by_session_question", ["sessionId", "questionIndex"]),
+  practiceAnswers: defineTable(answerFields).index("by_session_question", ["sessionId", "questionIndex"]),
   vocabularyLists: defineTable(listFields).index("by_guardian_status", ["guardianId", "status"]),
   words: defineTable(wordFields)
     .index("by_list_active", ["listId", "isActive"])
