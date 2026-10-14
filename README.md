@@ -124,9 +124,9 @@ kalenderstyrd återställning, ranking eller streak används. Ett avbrutet pass
 behåller redan intjänad XP men ger inget avslutnings-/utmaningsmärke.
 Äldre svar räknas inte om till XP eller märken. Kunskapsnivåerna är separata.
 
-Automatiska mobiltester finns, men Etapp 4:s manuella test på en **fysisk telefon**
-återstår. Loopback-adressen på datorn fungerar inte direkt från telefonen;
-se iterationsrapporten innan en separat utvecklingskonfiguration för det sätts upp.
+Etapp 4 är godkänd av användaren efter återkopplingen ”bra i mobil”. Automatiska
+mobiltester och användarens acceptans dokumenteras i iterationsrapporten;
+enhet, webbläsare och manuella testmoment är inte specificerade.
 
 ## Testa glosimporten
 

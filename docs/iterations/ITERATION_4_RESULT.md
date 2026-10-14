@@ -7,8 +7,8 @@ Datum: 2026-10-14. Omfattning: endast Etapp 4 i `GLOSAVENTYRET_MVP_PRD.md`.
 Implementationen är klar lokalt. XP, tre märken och veckans utmaning är byggda
 ovanpå de befintliga serverrättade passen. Inga produktionsmiljöer, molnprojekt,
 nycklar eller befintliga användarlösenord har ändrats. Etapp 5 har inte påbörjats.
-**Etappens DoD är ännu inte helt uppfylld: manuellt test på en fysisk telefon återstår.**
-Mobilwebbläsare i Playwright ersätter inte den kontrollen.
+**Etapp 4 är klar och godkänd av användaren.** Efter återkopplingen ”bra i mobil”
+bekräftade användaren uttryckligen ”Ja etapp 4 är klar”. Se manuell acceptans nedan.
 
 ## Implementation och beslut
 
@@ -93,7 +93,7 @@ kontrollerades mot [Convex officiella mutationsdokumentation](https://docs.conve
 | Hela E2E-sviten efter CSS-omstart | 48/48 godkända: 24 Chromium + 24 mobil WebKit, cirka 1,7 minuter |
 | Slutlig kontroll av nya stilar | 4/4 belönings-E2E omkörda med explicit kontroll av beräknad CSS; mobilbild granskad |
 | `git diff --check` | Godkänt |
-| Manuell fysisk telefon | Inte genomförd |
+| Mobilkontroll och manuell acceptans | Användaren rapporterar ”bra i mobil” och godkänner Etapp 4; enhet, webbläsare och enskilda testmoment är inte angivna |
 
 De 23 nya unit-/backendfallen omfattar rätt XP per läge, noll vid fel,
 flervalsfallback, parallella identiska svar och avslut, återanrop efter avslut,
@@ -124,22 +124,21 @@ hemligheter sparas i testartefakter; visuella bilder visar endast syntetisk
   verifierades de nya färgerna även med `getComputedStyle`-assertioner. Slutlig
   mobilbild `/tmp/glosaventyret-iteration4-final-mobile-webkit.png` granskades:
   gröna/gula paneler, intjänade och återstående märken samt mobilstapling syns.
-- Fysisk telefon är kvar som manuell DoD-punkt. Nuvarande lokala loopback-URL:er
-  (`127.0.0.1`) kan inte användas direkt från en telefon. En separat, avgränsad
-  utvecklingskonfiguration för både Next, Convex-URL och auth-origin behöver
-  sättas upp och verifieras innan telefonen ansluts. Inga portar/tunnlar eller
-  produktionsmiljöer har öppnats som del av denna etapp.
+- Användarens mobilkontroll och godkännande är dokumenterade nedan. Enhet,
+  anslutningssätt och detaljerad testomfattning har inte rapporterats.
+  Inga portar/tunnlar eller produktionsmiljöer har öppnats av agenten.
 - E2E:s iPhone 13/WebKit är emulering; det verifierar inte fysisk skärmtangentbord,
   touchkänsla, riktiga nätverksbyten eller prestanda på telefon.
 - Befintliga begränsningar kring separat elevinloggning, onboarding och e-post
   från tidigare etapper kvarstår. Inga beroenden ändrades; tidigare rapporterade
   utvecklingsberoendesårbarheter är inte omtestade/åtgärdade i denna etapp.
 
-## Manuell acceptans före stängning
+## Manuell acceptans och stängning
 
-När en säker utvecklingsanslutning till telefonen finns: logga in som förälder,
-öppna övningsvyn tillsammans, prova skriv-/flervalsfrågor i utmaningen, ladda om
-mitt i ett pass, kontrollera XP/märken på resultat och framsteg, och prova
-reducerad rörelse. Kontrollera särskilt virtuellt tangentbord, synliga
-tryckytor/fokus och att layouten inte kräver sidledsskroll. Dokumentera telefon,
-OS/webbläsare och resultat här. Fortsätt inte till Etapp 5 utan separat beslut.
+Användaren återkopplade ”bra i mobil” och bekräftade därefter ”Ja etapp 4 är klar”.
+Etappen stängs på detta uttryckliga godkännande. Telefonmodell, OS/webbläsare
+och vilka enskilda moment som provades är inte specificerade; rapporten tillskriver
+därför inte den manuella kontrollen samma detaljerade täckning som E2E-testerna.
+
+Denna uppdatering ändrar endast dokumentation. Inga nya kodtester har körts;
+tidigare verifieringsresultat ovan gäller. Etapp 5 kräver ett separat beslut.
